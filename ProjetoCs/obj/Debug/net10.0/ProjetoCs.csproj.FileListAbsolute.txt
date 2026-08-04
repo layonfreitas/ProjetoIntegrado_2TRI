@@ -1,0 +1,4 @@
+C:\Users\Alunos\Desktop\ProjetoIntegrado_2TRI\ProjetoCs\obj\Debug\net10.0\ProjetoCs.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Alunos\Desktop\ProjetoIntegrado_2TRI\ProjetoCs\obj\Debug\net10.0\ProjetoCs.AssemblyInfoInputs.cache
+C:\Users\Alunos\Desktop\ProjetoIntegrado_2TRI\ProjetoCs\obj\Debug\net10.0\ProjetoCs.AssemblyInfo.cs
+C:\Users\Alunos\Desktop\ProjetoIntegrado_2TRI\ProjetoCs\obj\Debug\net10.0\ProjetoCs.csproj.CoreCompileInputs.cache
