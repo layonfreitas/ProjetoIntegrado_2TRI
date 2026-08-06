@@ -13,9 +13,3 @@ obj/
 # Logs
 *.log
 
-# Arquivos do sistema
-.DS_Store
-Thumbs.db
-
-# Configurações locais
-appsettings.Development.json
