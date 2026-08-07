@@ -10,67 +10,63 @@ namespace ProjetoCs
     {
         static void Main(string[] args)
         {
-            SerialPort port = new SerialPort();
+            bool rodando = true;
 
-            port.PortName = "COM9";
-            port.BaudRate = 115200;
-            port.DataBits = 8;
-            port.Parity = Parity.None;
-            port.StopBits = StopBits.One;
+
+            SerialPort port = new SerialPort();
+            port.PortName = "COM3"; // Caso seja necessário, altere para a porta correta
+            port.BaudRate = 115200; // Configura a velocidade de transmissão
+            port.DataBits = 8; // Quantidade de bits de dados
+            port.Parity = Parity.None; // Tipo de paridade para detecção de erros
+            port.StopBits = StopBits.One; // Quantidade de bits de parada
 
             port.Open();
+            Console.WriteLine("Porta serial aberta. Estamos conectados na porta " + port.PortName + " com velocidade de " + port.BaudRate + " bps.");
 
-            Console.WriteLine("Porta serial aberta.");
-            Console.WriteLine("Aguardando dados...\n");
-
-            while (true)
+            while (rodando)
             {
-                try
+                string data = port.ReadLine();
+                data = data.Trim();
+
+                string[] partes = data.Split(';');
+
+                if (partes.Length == 2 &&
+                    float.TryParse(partes[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float valorPot) &&
+                    int.TryParse(partes[1], out int filtroAtivo)) // Verifica se a leitura é válida
                 {
-                    string data = port.ReadLine();
-                    data = data.Trim();
 
-                    // Formato recebido: 45.32;1
-                    string[] partes = data.Split(';');
+                    string filtro;
 
-                    if (partes.Length == 2 &&
-                        float.TryParse(partes[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float valorPot) &&
-                        int.TryParse(partes[1], out int filtroAtivo))
+                    if (filtroAtivo == 1)
                     {
-                        Console.WriteLine("Valor: " + valorPot);
-                        Console.WriteLine("Filtro: " + filtroAtivo);
-
-                        var leitura = new
-                        {
-                            valor = valorPot,
-                            filtroAtivo = filtroAtivo == 1
-                        };
-
-                        string json = JsonSerializer.Serialize(leitura);
-
-                        Console.WriteLine("JSON: " + json);
-
-                        WebClient client = new WebClient();
-                        client.Headers[HttpRequestHeader.ContentType] = "application/json";
-
-                        string resposta = client.UploadString(
-                            "http://127.0.0.1:3000/leituras", 
-                            "POST",
-                            json
-                        );
-
-                        Console.WriteLine("Resposta da API: " + resposta);
+                        filtro = "true";
                     }
                     else
                     {
-                        Console.WriteLine("Dado inválido: " + data);
+                        filtro = "false";
                     }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Erro: " + ex.Message);
+
+
+
+                    string json = "{" // cria a variável json, e abre o objeto JSON
+                     + "\"valor\":" + valorPot.ToString(CultureInfo.InvariantCulture) // Adiciona o valor da leitura ao JSON e faz que o numero seja escrito com ponto ao invés de vírgula, para que seja aceito pelo JSON
+                     + "," // Adiciona uma vírgula para separar os campos do JSON
+                     + "\"filtro\":" + filtro // Adiciona o valor do filtro ao JSON true ou false
+                     + "}"; // Fecha o objeto JSON
+
+                    WebClient client = new WebClient(); 
+                    client.Headers[HttpRequestHeader.ContentType] = "application/json";
+
+                    string resposta = client.UploadString(
+                        "http://127.0.0.1:3000/leituras",
+                        "POST",
+                        json
+                    );
+
+                    Console.WriteLine(resposta);
                 }
             }
+
         }
     }
 }

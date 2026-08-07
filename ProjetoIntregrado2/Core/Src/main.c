@@ -102,13 +102,15 @@ int main(void)
 
 	// lendo o valor do sensor (potenciometro)
 
-	  HAL_ADC_Start(&hadc1);
+	  HAL_ADC_Start(&hadc1); // lê a tensão do potenciometro
 
-	  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+	  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY); // espera a conversão ADC terminar
 
-	  uint16_t adc = HAL_ADC_GetValue(&hadc1);
+	  uint16_t adc = HAL_ADC_GetValue(&hadc1); // mostra o resultado
 
 	  float luminosidade = (adc * 100.0f) / 4095.0f; // converter o valor do sensor para porcentagem
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
