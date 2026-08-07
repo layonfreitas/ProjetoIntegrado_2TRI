@@ -8,6 +8,10 @@ app.use(express.json());
 const historico = [];
 const TAMANHO_MAX_HISTORICO = 100;
 
+app.get("/", (req, res) => {
+      res.sendFile(__dirname + '/public/index.html');
+})
+
 app.post("/leituras", (req, res) => {
     const { valor, filtroAtivo } = req.body;
 

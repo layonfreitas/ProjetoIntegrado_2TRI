@@ -19,16 +19,14 @@ namespace ProjetoCs
 
             Random random = new Random();
 
-            Console.WriteLine(
-                $"Enviando {quantidadeDeEnvios} leituras para a API..."
-            );
+            Console.WriteLine($"Iniciando o envio de {quantidadeDeEnvios} leituras...");
 
             for (int i = 1; i <= quantidadeDeEnvios; i++)
             {
                 var leitura = new Leitura
                 {
-                    valor = (float)(random.NextDouble() * 100),
-                    filtroAtivo = random.Next(0, 2) == 1
+                    Valor = (float)(random.NextDouble() * 100),
+                    Filtro = random.Next(0, 2) == 1
                 };
 
                 try
@@ -51,35 +49,29 @@ namespace ProjetoCs
 
                     Console.WriteLine(
                         $"[{i}/{quantidadeDeEnvios}] " +
-                        $"Status: {(int)resposta.StatusCode} - " +
-                        $"{resposta.StatusCode} | " +
-                        $"Dados: {json}"
+                        $"Enviado: {json} | " +
+                        $"Status: {(int)resposta.StatusCode} | " +
+                        $"Resposta: {respostaTexto}"
                     );
-
-                    if (!resposta.IsSuccessStatusCode)
-                    {
-                        Console.WriteLine(
-                            $"Erro retornado pela API: {respostaTexto}"
-                        );
-                    }
                 }
                 catch (HttpRequestException erro)
                 {
                     Console.WriteLine(
-                        $"Erro de conexão no envio {i}: {erro.Message}"
+                        $"[{i}/{quantidadeDeEnvios}] " +
+                        $"Erro ao enviar: {erro.Message}"
                     );
                 }
 
                 await Task.Delay(intervaloEmMilissegundos);
             }
 
-            Console.WriteLine("Envios finalizados.");
+            Console.WriteLine("Envio finalizado.");
         }
     }
 
     public class Leitura
     {
-        public float valor { get; set; }
-        public bool filtroAtivo { get; set; }
+        public float Valor { get; set; }
+        public bool Filtro { get; set; }
     }
 }
