@@ -644,8 +644,8 @@
                     </div>
                     <div class="luminosity-details">
                         <div class="detail-item">
-                            <div class="detail-value" id="adc-value">--</div>
-                            <div class="detail-label">Valor ADC (0-4095)</div>
+                            <div class="detail-value" id="confidence-value">--</div>
+                            <div class="detail-label">Confiança da IA (%)</div>
                         </div>
                         <div class="detail-item">
                             <div class="detail-value">
@@ -731,7 +731,7 @@
                     <thead>
                         <tr>
                             <th>Horário</th>
-                            <th>ADC</th>
+                            <th>Filtro</th>
                             <th>Luminosidade (%)</th>
                             <th>Classificação</th>
                         </tr>
@@ -763,7 +763,7 @@
         let chart;
         let readingsHistory = [];
         const MAX_HISTORY = 30;
-        const API_URL = 'http://localhost:5000/api/leitura'; // URL da API REST
+        const API_URL = 'http://localhost:3000/leituras'; // URL da API REST (devolve o histórico completo)
 
         // ============================================
         // INICIALIZAÇÃO
@@ -869,19 +869,26 @@
         // ============================================
         async function fetchData() {
             try {
-                // CHAMADA REAL À API REST
+                // CHAMADA REAL À API REST - devolve o histórico completo (array)
                 const response = await fetch(API_URL);
                 
                 if (!response.ok) {
                     throw new Error('Erro na resposta da API: ' + response.status);
                 }
                 
-                const data = await response.json();
-                
-                // A classificação já vem da API via JSON
+                const historico = await response.json();
+
+                if (!Array.isArray(historico) || historico.length === 0) {
+                    return; // ainda não chegou nenhuma leitura
+                }
+
+                const data = historico[historico.length - 1]; // leitura mais recente
+
+                readingsHistory = historico.slice(-MAX_HISTORY);
+
                 updateInterface(data);
-                updateChart(data);
-                updateHistory(data);
+                updateChart(readingsHistory);
+                updateHistory(readingsHistory);
                 updateStatistics();
                 updateTrend();
                 updateAlerts(data.classificacao);
@@ -897,15 +904,17 @@
         // ATUALIZAR INTERFACE
         // ============================================
         function updateInterface(data) {
-            // Luminosidade
-            document.getElementById('luminosity-value').textContent = data.luminosidade.toFixed(1);
+            // Luminosidade (valor do sensor, em %)
+            document.getElementById('luminosity-value').textContent = data.valor.toFixed(1);
             
-            // ADC
-            document.getElementById('adc-value').textContent = data.adc;
+            // Confiança da IA na classificação prevista (maior probabilidade)
+            const confiancas = data.probabilidades ? Object.values(data.probabilidades) : [];
+            const maiorConfianca = confiancas.length ? Math.max(...confiancas) * 100 : 0;
+            document.getElementById('confidence-value').textContent = maiorConfianca.toFixed(0) + '%';
             
             // Filtro
             const filterStatus = document.getElementById('filter-status');
-            if (data.filtro) {
+            if (data.filtroAtivo) {
                 filterStatus.textContent = 'Ligado';
                 filterStatus.className = 'filter-status filter-on';
             } else {
@@ -933,16 +942,16 @@
             
             let icon, description;
             
-            // A classificação já vem pronta da API
-            if (classificacao === 'Escuro') {
+            // A classificação já vem pronta da API (modelo de IA em Python)
+            if (classificacao === 'Pouca') {
                 indicator.classList.add('classification-escuro');
                 icon = 'fa-moon';
                 description = 'Ambiente com baixa luminosidade.';
-            } else if (classificacao === 'Iluminação Adequada') {
+            } else if (classificacao === 'Media') {
                 indicator.classList.add('classification-adequado');
                 icon = 'fa-sun';
                 description = 'Nível de iluminação ideal.';
-            } else if (classificacao === 'Muito Iluminado') {
+            } else if (classificacao === 'Muita') {
                 indicator.classList.add('classification-muito-iluminado');
                 icon = 'fa-lightbulb';
                 description = 'Excesso de luminosidade.';
@@ -956,11 +965,11 @@
             desc.textContent = description;
             
             // Muda cor do texto conforme classificação
-            if (classificacao === 'Escuro') {
+            if (classificacao === 'Pouca') {
                 text.style.color = 'var(--class-escuro)';
-            } else if (classificacao === 'Iluminação Adequada') {
+            } else if (classificacao === 'Media') {
                 text.style.color = 'var(--class-adequado)';
-            } else if (classificacao === 'Muito Iluminado') {
+            } else if (classificacao === 'Muita') {
                 text.style.color = 'var(--class-muito-iluminado)';
             }
         }
@@ -968,52 +977,39 @@
         // ============================================
         // ATUALIZAR GRÁFICO
         // ============================================
-        function updateChart(data) {
-            const timeLabel = data.horario;
-            
-            // Adiciona novos dados
-            chart.data.labels.push(timeLabel);
-            chart.data.datasets[0].data.push(data.luminosidade);
-            
-            // Mantém apenas as últimas 30 leituras
-            if (chart.data.labels.length > MAX_HISTORY) {
-                chart.data.labels.shift();
-                chart.data.datasets[0].data.shift();
-            }
-            
+        function updateChart(historico) {
+            // Reconstrói o gráfico a partir do histórico completo vindo da API
+            chart.data.labels = historico.map(r => r.horario);
+            chart.data.datasets[0].data = historico.map(r => r.valor);
             chart.update();
         }
 
         // ============================================
         // ATUALIZAR HISTÓRICO
         // ============================================
-        function updateHistory(data) {
-            readingsHistory.unshift(data);
-            
-            // Mantém apenas as últimas 10 leituras
-            if (readingsHistory.length > 10) {
-                readingsHistory.pop();
-            }
-            
+        function updateHistory(historico) {
+            // Mostra as últimas 10 leituras, mais recente primeiro
+            const ultimas10 = historico.slice(-10).reverse();
+
             const tbody = document.getElementById('history-table-body');
             tbody.innerHTML = '';
             
-            readingsHistory.forEach(reading => {
+            ultimas10.forEach(reading => {
                 const tr = document.createElement('tr');
                 
                 let badgeClass;
-                if (reading.classificacao === 'Escuro') {
+                if (reading.classificacao === 'Pouca') {
                     badgeClass = 'badge-escuro';
-                } else if (reading.classificacao === 'Iluminação Adequada') {
+                } else if (reading.classificacao === 'Media') {
                     badgeClass = 'badge-adequado';
-                } else if (reading.classificacao === 'Muito Iluminado') {
+                } else if (reading.classificacao === 'Muita') {
                     badgeClass = 'badge-muito-iluminado';
                 }
                 
                 tr.innerHTML = `
                     <td>${reading.horario}</td>
-                    <td>${reading.adc}</td>
-                    <td>${reading.luminosidade.toFixed(1)}%</td>
+                    <td>${reading.filtroAtivo ? 'Ligado' : 'Desligado'}</td>
+                    <td>${reading.valor.toFixed(1)}%</td>
                     <td><span class="badge ${badgeClass}">${reading.classificacao}</span></td>
                 `;
                 
@@ -1027,7 +1023,7 @@
         function updateStatistics() {
             if (readingsHistory.length === 0) return;
             
-            const luminosidades = readingsHistory.map(r => r.luminosidade);
+            const luminosidades = readingsHistory.map(r => r.valor);
             
             const average = luminosidades.reduce((a, b) => a + b, 0) / luminosidades.length;
             const max = Math.max(...luminosidades);
@@ -1047,8 +1043,8 @@
                 return;
             }
             
-            const recent = readingsHistory.slice(0, 5);
-            const luminosidades = recent.map(r => r.luminosidade);
+            const recent = readingsHistory.slice(-5);
+            const luminosidades = recent.map(r => r.valor);
             
             const firstHalf = luminosidades.slice(0, Math.floor(luminosidades.length / 2));
             const secondHalf = luminosidades.slice(Math.floor(luminosidades.length / 2));
@@ -1088,9 +1084,9 @@
             alertEscuro.classList.remove('show');
             
             // Mostra alerta apropriado baseado na classificação da API
-            if (classificacao === 'Muito Iluminado') {
+            if (classificacao === 'Muita') {
                 alertMuitoIluminado.classList.add('show');
-            } else if (classificacao === 'Escuro') {
+            } else if (classificacao === 'Pouca') {
                 alertEscuro.classList.add('show');
             }
         }
