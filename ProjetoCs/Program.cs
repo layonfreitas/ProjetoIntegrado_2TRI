@@ -12,7 +12,6 @@ namespace ProjetoCs
         {
             bool rodando = true;
 
-
             SerialPort port = new SerialPort();
             port.PortName = "COM5"; // Caso seja necessário, altere para a porta correta
             port.BaudRate = 115200; // Configura a velocidade de transmissão
@@ -23,50 +22,65 @@ namespace ProjetoCs
             port.Open();
             Console.WriteLine("Porta serial aberta. Estamos conectados na porta " + port.PortName + " com velocidade de " + port.BaudRate + " bps.");
 
+            int[] frame = new int[6];
+
             while (rodando)
             {
-                string data = port.ReadLine();
-                data = data.Trim();
+                int b = port.ReadByte();
 
-                string[] partes = data.Split(',');
-
-                if (partes.Length == 2 &&
-                    float.TryParse(partes[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float valorPot) &&
-                    int.TryParse(partes[1], out int filtroAtivo)) // Verifica se a leitura é válida
+                if (b == 0xAA)
                 {
+                    frame[0] = 0xAA;
+                    frame[1] = port.ReadByte(); // tipo
+                    frame[2] = port.ReadByte(); // valor - byte alto
+                    frame[3] = port.ReadByte(); // valor - byte baixo
+                    frame[4] = port.ReadByte(); // filtro
+                    frame[5] = port.ReadByte(); // checksum recebido
 
-                    string filtro;
+                    int checksumCalculado = frame[0] ^ frame[1] ^ frame[2] ^ frame[3] ^ frame[4];
 
-                    if (filtroAtivo == 1)
+                    if (checksumCalculado == frame[5])
                     {
-                        filtro = "true";
+                        int valorEscalado = (frame[2] << 8) | frame[3]; // remonta byte alto + byte baixo
+                        float valorPot = (valorEscalado / 4095.0f) * 100.0f; // converte ADC bruto para %
+
+                        bool filtroAtivo = frame[4] == 1;
+
+                        string filtro;
+
+                        if (filtroAtivo)
+                        {
+                            filtro = "true";
+                        }
+                        else
+                        {
+                            filtro = "false";
+                        }
+
+                        string json = "{"
+                         + "\"valor\":" + valorPot.ToString(CultureInfo.InvariantCulture)
+                         + ","
+                         + "\"filtroAtivo\":" + filtro
+                         + "}";
+                        Console.WriteLine("JSON gerado: " + json);
+
+                        WebClient client = new WebClient();
+                        client.Headers[HttpRequestHeader.ContentType] = "application/json";
+
+                        string resposta = client.UploadString(
+                            "http://127.0.0.1:3000/leituras",
+                            "POST",
+                            json
+                        );
+
+                        Console.WriteLine(resposta);
                     }
                     else
                     {
-                        filtro = "false";
+                        Console.WriteLine("Pacote corrompido, descartado.");
                     }
-
-
-
-                    string json = "{" // cria a variável json, e abre o objeto JSON
-                     + "\"valor\":" + valorPot.ToString(CultureInfo.InvariantCulture) // Adiciona o valor da leitura ao JSON e faz que o numero seja escrito com ponto ao invés de vírgula, para que seja aceito pelo JSON
-                     + "," // Adiciona uma vírgula para separar os campos do JSON
-                     + "\"filtroAtivo\":" + filtro // Adiciona o valor do filtro ao JSON true ou false
-                     + "}"; // Fecha o objeto JSON
-                    Console.WriteLine("JSON gerado: " + json);
-                    WebClient client = new WebClient(); 
-                    client.Headers[HttpRequestHeader.ContentType] = "application/json";
-
-                    string resposta = client.UploadString(
-                        "http://127.0.0.1:3000/leituras",
-                        "POST",
-                        json
-                    );
-
-                    Console.WriteLine(resposta);
                 }
             }
-
         }
     }
 }

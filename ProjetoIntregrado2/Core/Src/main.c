@@ -97,13 +97,9 @@ int main(void)
 
   uint8_t filtroAtivo = 0;
 
-  char mensagem[50];
-
   GPIO_PinState estadoAnterior = 1;
 
   uint16_t adc;
-
-  float luminosidade;
 
   float valorFiltrado = 0;
 
@@ -115,100 +111,86 @@ int main(void)
 
   uint32_t tempoAnterior = 0;
 
+  uint8_t frame[6];
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  // =========================
-	     // BOTÃO DO FILTRO
-	     // =========================
+	    // BOTÃO DO FILTRO
 
-	     GPIO_PinState estadoAtual = BtnFiltro;
+	    GPIO_PinState estadoAtual = BtnFiltro;
 
-	     if (estadoAnterior == GPIO_PIN_SET &&
-	         estadoAtual == GPIO_PIN_RESET)
-	     {
-	         filtroAtivo = !filtroAtivo;
+	    if (estadoAnterior == GPIO_PIN_SET &&
+	        estadoAtual == GPIO_PIN_RESET)
+	    {
+	        filtroAtivo = !filtroAtivo;
 
-	         HAL_Delay(50);
-	     }
+	        HAL_Delay(50);
+	    }
 
-	     estadoAnterior = estadoAtual;
+	    estadoAnterior = estadoAtual;
 
 
-	     // =========================
-	     // LEITURA DO ADC
-	     // =========================
+	    // LEITURA DO ADC
 
-	     HAL_ADC_Start(&hadc1);
+	    HAL_ADC_Start(&hadc1);
 
-	     HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+	    HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
 
-	     adc = HAL_ADC_GetValue(&hadc1);
-
-	     // Converte para porcentagem
-	     luminosidade = (adc * 100.0f) / 4095.0f;
+	    adc = HAL_ADC_GetValue(&hadc1); // valor bruto, 0 a 4095
 
 
-	     // =========================
-	     // FILTRO
-	     // =========================
+	    // FILTRO
 
-	     if (filtroAtivo)
-	     {
-	         soma -= leituras[indice];
+	    if (filtroAtivo)
+	    {
+	        soma -= leituras[indice];
 
-	         leituras[indice] = luminosidade;
+	        leituras[indice] = adc;
 
-	         soma += leituras[indice];
+	        soma += leituras[indice];
 
-	         indice++;
+	        indice++;
 
-	         if (indice >= TAMANHO_FILTRO)
-	         {
-	             indice = 0;
-	         }
+	        if (indice >= TAMANHO_FILTRO)
+	        {
+	            indice = 0;
+	        }
 
-	         valorFiltrado = soma / TAMANHO_FILTRO;
-	     }
-	     else
-	     {
-	         valorFiltrado = luminosidade;
-	     }
+	        valorFiltrado = soma / TAMANHO_FILTRO;
+	    }
+	    else
+	    {
+	        valorFiltrado = adc;
+	    }
 
 
-	     // =========================
-	     // ENVIA PELA USB A CADA 1s
-	     // =========================
+	    // ENVIA PELA USB A CADA 1s
 
-	     if (HAL_GetTick() - tempoAnterior >= 1000)
-	     {
-	         tempoAnterior = HAL_GetTick();
+	    if (HAL_GetTick() - tempoAnterior >= 1000)
+	    {
+	        tempoAnterior = HAL_GetTick();
 
-	         if (filtroAtivo == 1)
-	         {
-	             sprintf(mensagem, "%.2f,1\r\n", valorFiltrado);
-	         }
-	         else
-	         {
-	             sprintf(mensagem, "%.2f,0\r\n", valorFiltrado);
-	         }
+	        int valor_bruto = valorFiltrado; // corta a parte decimal da média do filtro
 
-	         CDC_Transmit_FS(
-	             (uint8_t*)mensagem,
-	             strlen(mensagem)
-	         );
-	     }
+	        frame[0] = 0xAA;
+	        frame[1] = 0x01;
+	        frame[2] = valor_bruto >> 8;   // byte alto
+	        frame[3] = valor_bruto;        // byte baixo
+	        frame[4] = filtroAtivo;
+	        frame[5] = frame[0] ^ frame[1] ^ frame[2] ^ frame[3] ^ frame[4];
+
+	        CDC_Transmit_FS(frame, 6);
+	    }
 
 
-	     // Pequeno intervalo para não rodar rápido demais
-	     HAL_Delay(100);
+	    // Pequeno intervalo para não rodar rápido demais
+	    HAL_Delay(100);
     /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
   }
+
   /* USER CODE END 3 */
 }
 
