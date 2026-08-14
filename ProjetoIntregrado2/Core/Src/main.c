@@ -118,76 +118,101 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	    // BOTÃO DO FILTRO
+	  // =========================================================
+	     // BOTÃO DO FILTRO
+	     // =========================================================
 
-	    GPIO_PinState estadoAtual = BtnFiltro;
+	     GPIO_PinState estadoAtual = BtnFiltro;
 
-	    if (estadoAnterior == GPIO_PIN_SET &&
-	        estadoAtual == GPIO_PIN_RESET)
-	    {
-	        filtroAtivo = !filtroAtivo;
+	     if (estadoAnterior == GPIO_PIN_SET &&
+	         estadoAtual == GPIO_PIN_RESET)
+	     {
+	         filtroAtivo = !filtroAtivo;
 
-	        HAL_Delay(50);
-	    }
+	         // Limpa o filtro quando mudar de estado
+	         soma = 0;
+	         indice = 0;
 
-	    estadoAnterior = estadoAtual;
+	         for (int i = 0; i < TAMANHO_FILTRO; i++)
+	         {
+	             leituras[i] = 0;
+	         }
 
+	         HAL_Delay(50);
+	     }
 
-	    // LEITURA DO ADC
-
-	    HAL_ADC_Start(&hadc1);
-
-	    HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-
-	    adc = HAL_ADC_GetValue(&hadc1); // valor bruto, 0 a 4095
-
-
-	    // FILTRO
-
-	    if (filtroAtivo)
-	    {
-	        soma -= leituras[indice];
-
-	        leituras[indice] = adc;
-
-	        soma += leituras[indice];
-
-	        indice++;
-
-	        if (indice >= TAMANHO_FILTRO)
-	        {
-	            indice = 0;
-	        }
-
-	        valorFiltrado = soma / TAMANHO_FILTRO;
-	    }
-	    else
-	    {
-	        valorFiltrado = adc;
-	    }
+	     estadoAnterior = estadoAtual;
 
 
-	    // ENVIA PELA USB A CADA 1s
+	     // =========================================================
+	     // LEITURA DO ADC
+	     // =========================================================
 
-	    if (HAL_GetTick() - tempoAnterior >= 1000)
-	    {
-	        tempoAnterior = HAL_GetTick();
+	     HAL_ADC_Start(&hadc1);
 
-	        int valor_bruto = valorFiltrado; // corta a parte decimal da média do filtro
+	     HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
 
-	        frame[0] = 0xAA;
-	        frame[1] = 0x01;
-	        frame[2] = valor_bruto >> 8;   // byte alto
-	        frame[3] = valor_bruto;        // byte baixo
-	        frame[4] = filtroAtivo;
-	        frame[5] = frame[0] ^ frame[1] ^ frame[2] ^ frame[3] ^ frame[4];
-
-	        CDC_Transmit_FS(frame, 6);
-	    }
+	     adc = HAL_ADC_GetValue(&hadc1);
 
 
-	    // Pequeno intervalo para não rodar rápido demais
-	    HAL_Delay(100);
+	     // =========================================================
+	     // FILTRO
+	     // =========================================================
+
+	     if (filtroAtivo)
+	     {
+	         soma -= leituras[indice];
+
+	         leituras[indice] = adc;
+
+	         soma += leituras[indice];
+
+	         indice++;
+
+	         if (indice >= TAMANHO_FILTRO)
+	         {
+	             indice = 0;
+	         }
+
+	         valorFiltrado = soma / TAMANHO_FILTRO;
+	     }
+	     else
+	     {
+	         valorFiltrado = adc;
+	     }
+
+
+	     // =========================================================
+	     // ENVIO A CADA 1 SEGUNDO
+	     // =========================================================
+
+	     if (HAL_GetTick() - tempoAnterior >= 1000)
+	     {
+	         tempoAnterior = HAL_GetTick();
+
+	         uint16_t valor_bruto = (uint16_t)valorFiltrado;
+
+	         frame[0] = 0xAA;
+	         frame[1] = 0x01;
+
+	         // ADC 16 bits
+	         frame[2] = (valor_bruto >> 8) & 0xFF;
+	         frame[3] = valor_bruto & 0xFF;
+
+	         // Filtro
+	         frame[4] = filtroAtivo;
+
+	         // Checksum
+	         frame[5] = frame[0] ^
+	                    frame[1] ^
+	                    frame[2] ^
+	                    frame[3] ^
+	                    frame[4];
+
+	         CDC_Transmit_FS(frame, 6);
+	     }
+
+	     HAL_Delay(100);
     /* USER CODE END WHILE */
   }
 

@@ -70,3 +70,6 @@ C:\Users\layon\OneDrive\Desktop\ProjetoIntegrado_2TRI\ProjetoCs\obj\Debug\net10.
 C:\Users\layon\OneDrive\Desktop\ProjetoIntegrado_2TRI\ProjetoCs\obj\Debug\net10.0\ProjetoCs.pdb
 C:\Users\layon\OneDrive\Desktop\ProjetoIntegrado_2TRI\ProjetoCs\obj\Debug\net10.0\ProjetoCs.genruntimeconfig.cache
 C:\Users\layon\OneDrive\Desktop\ProjetoIntegrado_2TRI\ProjetoCs\obj\Debug\net10.0\ref\ProjetoCs.dll
+C:\Users\Alunos\Desktop\ProjetoIntegrado_2TRI\ProjetoCs\bin\Debug\net10.0\System.CodeDom.dll
+C:\Users\Alunos\Desktop\ProjetoIntegrado_2TRI\ProjetoCs\bin\Debug\net10.0\System.Management.dll
+C:\Users\Alunos\Desktop\ProjetoIntegrado_2TRI\ProjetoCs\bin\Debug\net10.0\runtimes\win\lib\net10.0\System.Management.dll

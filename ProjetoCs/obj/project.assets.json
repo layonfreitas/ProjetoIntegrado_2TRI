@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 3,
   "targets": {
     "net10.0": {
       "runtime.android-arm.runtime.native.System.IO.Ports/10.0.10": {
@@ -1127,6 +1127,22 @@
           }
         }
       },
+      "System.CodeDom/10.0.11": {
+        "type": "package",
+        "compile": {
+          "lib/net10.0/System.CodeDom.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/System.CodeDom.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net8.0/_._": {}
+        }
+      },
       "System.IO.Ports/10.0.10": {
         "type": "package",
         "dependencies": {
@@ -1151,6 +1167,31 @@
             "rid": "unix"
           },
           "runtimes/win/lib/net10.0/System.IO.Ports.dll": {
+            "assetType": "runtime",
+            "rid": "win"
+          }
+        }
+      },
+      "System.Management/10.0.11": {
+        "type": "package",
+        "dependencies": {
+          "System.CodeDom": "10.0.11"
+        },
+        "compile": {
+          "lib/net10.0/System.Management.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/System.Management.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net8.0/_._": {}
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net10.0/System.Management.dll": {
             "assetType": "runtime",
             "rid": "win"
           }
@@ -1670,6 +1711,35 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "System.CodeDom/10.0.11": {
+      "sha512": "v40pNeBoZTYsiVxz+PzyZmmIr2JIhpK4VsFpQqZSZCXa51PDlNXIN2ESm8kDU0voZYVfLhxF9HvmBsxCJmkiRg==",
+      "type": "package",
+      "path": "system.codedom/10.0.11",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/System.CodeDom.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net8.0/_._",
+        "buildTransitive/netcoreapp2.0/System.CodeDom.targets",
+        "lib/net10.0/System.CodeDom.dll",
+        "lib/net10.0/System.CodeDom.xml",
+        "lib/net462/System.CodeDom.dll",
+        "lib/net462/System.CodeDom.xml",
+        "lib/net8.0/System.CodeDom.dll",
+        "lib/net8.0/System.CodeDom.xml",
+        "lib/net9.0/System.CodeDom.dll",
+        "lib/net9.0/System.CodeDom.xml",
+        "lib/netstandard2.0/System.CodeDom.dll",
+        "lib/netstandard2.0/System.CodeDom.xml",
+        "system.codedom.10.0.11.nupkg.sha512",
+        "system.codedom.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
     "System.IO.Ports/10.0.10": {
       "sha512": "9lciKeaWzvX3DlgKVvMSE9hM1DeXXTtvE/FIOyNaXn03DrSlC1zZfjALB250MxbClnjMUEp4yfP3rTEegedLUA==",
       "type": "package",
@@ -1710,31 +1780,64 @@
         "system.io.ports.nuspec",
         "useSharedDesignerContext.txt"
       ]
+    },
+    "System.Management/10.0.11": {
+      "sha512": "xyNn8KGbWI88LoUwg3rB8qcpFFST6dr8Ro/qS8GBu2GOwR0v7J82kVFHTiiPtvEKS79VbMTxs/sIKQ+Cq1Zs1g==",
+      "type": "package",
+      "path": "system.management/10.0.11",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net8.0/_._",
+        "buildTransitive/netcoreapp2.0/System.Management.targets",
+        "lib/net10.0/System.Management.dll",
+        "lib/net10.0/System.Management.xml",
+        "lib/net462/_._",
+        "lib/net8.0/System.Management.dll",
+        "lib/net8.0/System.Management.xml",
+        "lib/net9.0/System.Management.dll",
+        "lib/net9.0/System.Management.xml",
+        "lib/netstandard2.0/System.Management.dll",
+        "lib/netstandard2.0/System.Management.xml",
+        "runtimes/win/lib/net10.0/System.Management.dll",
+        "runtimes/win/lib/net10.0/System.Management.xml",
+        "runtimes/win/lib/net8.0/System.Management.dll",
+        "runtimes/win/lib/net8.0/System.Management.xml",
+        "runtimes/win/lib/net9.0/System.Management.dll",
+        "runtimes/win/lib/net9.0/System.Management.xml",
+        "system.management.10.0.11.nupkg.sha512",
+        "system.management.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
     }
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "System.IO.Ports >= 10.0.10"
+      "System.IO.Ports >= 10.0.10",
+      "System.Management >= 10.0.11"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\layon\\.nuget\\packages\\": {},
+    "C:\\Users\\Alunos\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\layon\\OneDrive\\Desktop\\ProjetoIntegrado_2TRI\\ProjetoCs\\ProjetoCs.csproj",
+      "projectUniqueName": "C:\\Users\\Alunos\\Desktop\\ProjetoIntegrado_2TRI\\ProjetoCs\\ProjetoCs.csproj",
       "projectName": "ProjetoCs",
-      "projectPath": "C:\\Users\\layon\\OneDrive\\Desktop\\ProjetoIntegrado_2TRI\\ProjetoCs\\ProjetoCs.csproj",
-      "packagesPath": "C:\\Users\\layon\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\layon\\OneDrive\\Desktop\\ProjetoIntegrado_2TRI\\ProjetoCs\\obj\\",
+      "projectPath": "C:\\Users\\Alunos\\Desktop\\ProjetoIntegrado_2TRI\\ProjetoCs\\ProjetoCs.csproj",
+      "packagesPath": "C:\\Users\\Alunos\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Alunos\\Desktop\\ProjetoIntegrado_2TRI\\ProjetoCs\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\layon\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Alunos\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -1748,7 +1851,6 @@
       },
       "frameworks": {
         "net10.0": {
-          "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {}
         }
@@ -1763,16 +1865,19 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.300"
+      "SdkAnalysisLevel": "10.0.200"
     },
     "frameworks": {
       "net10.0": {
-        "framework": "net10.0",
         "targetAlias": "net10.0",
         "dependencies": {
           "System.IO.Ports": {
             "target": "Package",
             "version": "[10.0.10, )"
+          },
+          "System.Management": {
+            "target": "Package",
+            "version": "[10.0.11, )"
           }
         },
         "imports": [
@@ -1791,7 +1896,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",
