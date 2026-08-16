@@ -1,186 +1,133 @@
-MARCELO cuiudo e layon macio
+# Projeto Integrado 2 TRI - Sistema Inteligente de Monitoramento de Luminosidade
 
-using System;
-using System.Globalization;
-using System.IO.Ports;
-using System.Net;
-using System.Management;
+Sistema distribuído de aquisição, processamento e visualização de dados, simulando uma aplicação de Internet das Coisas (IoT) de monitoramento de luminosidade: um microcontrolador STM32 lê um sensor analógico (potenciômetro, que simula um sensor de luminosidade, como um LDR), uma aplicação em C# recebe essa leitura pela porta serial e a envia para um servidor Web, que por sua vez encaminha o valor para um modelo de Inteligência Artificial responsável por classificar o nível de luminosidade da medição. O resultado final é exibido em tempo real em uma interface Web.
 
-namespace ProjetoCs
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            bool rodando = true;
+## Integrantes do grupo
 
-            // Pega todas as portas COM disponíveis
-            string[] portas = SerialPort.GetPortNames();
+- [Nome do integrante 1]
+- [Nome do integrante 2]
+- [Nome do integrante 3]
 
-            if (portas.Length == 0)
-            {
-                Console.WriteLine("Nenhuma porta COM encontrada.");
-                return;
-            }
+## Arquitetura do sistema
 
-            // Ordena as portas
-            Array.Sort(portas);
+```
+[Potenciômetro] --> [STM32F103C8T6] --USB CDC / Serial--> [App C#]
+                                                              |
+                                                       HTTP POST (JSON)
+                                                              v
+                                                    [API REST - Node.js/Express]
+                                                              |
+                                                    chama o classificador
+                                                              v
+                                                   [Modelo IA - Python/scikit-learn]
+                                                              |
+                                                     classificação + probabilidades
+                                                              v
+                                                    [API armazena o histórico]
+                                                              |
+                                                       HTTP GET (polling)
+                                                              v
+                                                    [Interface Web - Dashboard]
+```
 
-            Console.WriteLine("PORTAS COM DISPONÍVEIS");
+O fluxo de dados é sempre unidirecional, de ponta a ponta: sensor -> microcontrolador -> aplicação intermediária -> API -> IA -> API -> interface Web.
 
-        for (int i = 0; i < portas.Length; i++)
-        {
-        string nome = ObterNomeDaPorta(portas[i]);
+## Estrutura de pastas
 
-        Console.WriteLine($"{i + 1} - {portas[i]} - {nome}");
-        }
+```
+ProjetoIntegrado_2TRI/
+├── ProjetoIntregrado2/       Firmware do STM32 (STM32CubeIDE)
+│   ├── Core/Src/main.c       Lógica principal: leitura ADC, filtro e envio serial
+│   └── USB_DEVICE/           Configuração do USB CDC (porta COM virtual)
+│
+├── ProjetoCs/                Aplicação intermediária em C#
+│   └── Program.cs            Leitura da porta serial e envio HTTP para a API
+│
+├── API/                      Servidor Web (Node.js + Express)
+│   ├── api.js                API REST, histórico de leituras e chamada da IA
+│   ├── IA/
+│   │   ├── classificado.py   Script Python que treina e executa o classificador
+│   │   └── dataset.csv       Conjunto de dados usado para treinar o modelo
+│   └── public/
+│       └── index.html        Interface Web (dashboard de monitoramento)
+│
+└── README.md
+```
 
-            Console.WriteLine();
-            Console.Write("Escolha o número da porta COM: ");
+## Como o sistema funciona
 
-            int escolha;
+### 1. Aquisição de dados (STM32)
 
-            while (!int.TryParse(Console.ReadLine(), out escolha) ||
-                   escolha < 1 ||
-                   escolha > portas.Length)
-            {
-                Console.Write("Opção inválida. Escolha novamente: ");
-            }
+O STM32 realiza a leitura contínua de um potenciômetro conectado a um canal do ADC. O potenciômetro simula um sensor de luminosidade (como um LDR), permitindo variar manualmente o "nível de luz" percebido pelo sistema. Um botão ligado a um pino GPIO (`Filtro_Pin`) permite ativar ou desativar, em tempo real, um filtro de média móvel de 5 amostras sobre a leitura do sensor.
 
-            // Pega a porta escolhida
-            string portaEscolhida = portas[escolha - 1];
+A cada 1 segundo, o microcontrolador monta um pacote de 6 bytes e o transmite pela porta serial virtual (USB CDC), no seguinte formato:
 
-            Console.WriteLine();
-            Console.WriteLine("Porta escolhida: " + portaEscolhida);
+| Byte | Conteúdo |
+|---|---|
+| 0 | Cabeçalho fixo `0xAA` |
+| 1 | Tipo do pacote (`0x01`) |
+| 2 | Valor do ADC - byte alto |
+| 3 | Valor do ADC - byte baixo |
+| 4 | Estado do filtro (0 = desligado, 1 = ligado) |
+| 5 | Checksum (XOR dos bytes 0 a 4) |
 
-            SerialPort port = new SerialPort();
+### 2. Comunicação com o servidor (C#)
 
-            port.PortName = portaEscolhida;
-            port.BaudRate = 115200;
-            port.DataBits = 8;
-            port.Parity = Parity.None;
-            port.StopBits = StopBits.One;
+A aplicação em C# (`ProjetoCs/Program.cs`) lista as portas COM disponíveis, permite que o usuário escolha a porta correta e abre a comunicação serial a 115200 bps. Ao receber um pacote, ela:
 
-            try // tenta fazer tudo que está dentro do try
-            {
-                port.Open();
+1. valida o pacote pelo checksum, descartando pacotes corrompidos;
+2. converte o valor bruto do ADC (0 a 4095) para uma escala percentual de 0 a 100, representando o nível de luminosidade;
+3. monta um objeto JSON com o valor convertido e o estado do filtro;
+4. envia o JSON via requisição HTTP POST para o endpoint `/leituras` da API.
 
-                Console.WriteLine(
-                    "Porta serial aberta. Estamos conectados na porta "
-                    + port.PortName
-                    + " com velocidade de "
-                    + port.BaudRate
-                    + " bps."
-                );
+### 3. API REST (Node.js/Express)
 
-                int[] frame = new int[6];
+A API (`API/api.js`) expõe os seguintes endpoints:
 
-                while (rodando)
-                {
-                    int b = port.ReadByte();
+- `POST /leituras`: recebe a leitura enviada pela aplicação C#, chama o script de classificação em Python, armazena o resultado em um histórico em memória (últimas 100 leituras) e retorna a leitura processada.
+- `GET /leituras`: retorna o histórico completo de leituras já classificadas, consumido pela interface Web.
+- `GET /`: serve a página do dashboard (`public/index.html`).
 
-                    if (b == 0xAA)
-                    {
-                        frame[0] = 0xAA;
-                        frame[1] = port.ReadByte(); // tipo
-                        frame[2] = port.ReadByte(); // valor - byte alto
-                        frame[3] = port.ReadByte(); // valor - byte baixo
-                        frame[4] = port.ReadByte(); // filtro
-                        frame[5] = port.ReadByte(); // checksum recebido
+### 4. Classificação automática (IA)
 
-                        int checksumCalculado =
-                            frame[0] ^
-                            frame[1] ^
-                            frame[2] ^
-                            frame[3] ^
-                            frame[4];
+O script `API/IA/classificado.py` é chamado pela API a cada nova leitura. Ele carrega o conjunto de dados `dataset.csv` (valores do sensor associados a rótulos), treina um modelo de **Árvore de Decisão** (`DecisionTreeClassifier` do scikit-learn) e classifica o nível de luminosidade da leitura recebida em uma das três categorias:
 
-                        if (checksumCalculado == frame[5])
-                        {
-                            int valorEscalado =
-                                (frame[2] << 8) | frame[3];
+- **Pouca** (ambiente com baixa luminosidade)
+- **Media** (nível de iluminação ideal)
+- **Muita** (excesso de luminosidade)
 
-                            float valorPot =
-                                (valorEscalado / 4095.0f) * 100.0f;
+Além da classificação, o script também retorna as probabilidades associadas a cada categoria, usadas na interface Web para exibir a confiança da IA na previsão.
 
-                            bool filtroAtivo = frame[4] == 1;
+### 5. Interface Web (Dashboard)
 
-                            string filtro;
+A página (`API/public/index.html`), intitulada "Sistema Inteligente de Monitoramento de Luminosidade", consulta a API a cada segundo e exibe:
 
-                            if (filtroAtivo)
-                            {
-                                filtro = "true";
-                            }
-                            else
-                            {
-                                filtro = "false";
-                            }
+- valor atual da luminosidade (%) e horário da última atualização;
+- classificação retornada pela IA e a confiança da previsão;
+- estado atual do filtro (ligado ou desligado);
+- gráfico com a evolução das medições ao longo do tempo (Chart.js);
+- estatísticas em tempo real: média, máximo e mínimo;
+- indicação de tendência de luminosidade (crescendo, diminuindo ou estável);
+- alertas visuais quando a luminosidade atinge um estado de atenção (muito iluminado ou muito escuro);
+- tabela com o histórico das últimas leituras recebidas.
 
-                            string json = "{"
-                                + "\"valor\":"
-                                + valorPot.ToString(
-                                    CultureInfo.InvariantCulture)
-                                + ","
-                                + "\"filtroAtivo\":"
-                                + filtro
-                                + "}";
+## Decisões de projeto
 
-                            Console.WriteLine("JSON gerado: " + json);
+- O potenciômetro foi usado para simular um sensor de luminosidade (como um LDR), já que ambos entregam uma variação analógica contínua proporcional à grandeza medida, permitindo simular diferentes níveis de luz de forma controlada durante os testes.
+- O protocolo serial usa um cabeçalho fixo e checksum simples (XOR) para garantir a integridade dos pacotes recebidos pela aplicação C#, descartando pacotes corrompidos.
+- O filtro de média móvel foi escolhido por ser adequado a variáveis físicas contínuas e de variação lenta, como a luminosidade, suavizando ruídos da leitura do ADC.
+- O modelo de IA é uma Árvore de Decisão, treinada a cada requisição a partir do `dataset.csv`. A escolha por um modelo simples e interpretável facilita a explicação das decisões de classificação durante a arguição.
+- O histórico de leituras é mantido em memória na própria API (sem banco de dados), limitado às últimas 100 leituras, o que é suficiente para o escopo do projeto.
+- A interface Web atualiza os dados por polling (requisição HTTP a cada 1 segundo), mantendo a solução simples e sem a necessidade de WebSockets.
 
-                            WebClient client = new WebClient();
+## Vídeo de apresentação
 
-                            client.Headers[HttpRequestHeader.ContentType] =
-                                "application/json";
+[Link do vídeo no YouTube]
 
-                            string resposta = client.UploadString(
-                                "http://127.0.0.1:3000/leituras",
-                                "POST",
-                                json
-                            );
+## Tecnologias utilizadas
 
-                            Console.WriteLine(resposta);
-                        }
-                        else
-                        {
-                            Console.WriteLine(
-                                "Pacote corrompido, descartado."
-                            );
-                        }
-                    }
-                }
-            }
-            catch (UnauthorizedAccessException) // evita problemas no codigo
-            {
-                Console.WriteLine(
-                    "Não foi possível acessar a porta. " +
-                    "Ela pode estar sendo usada por outro programa."
-                );
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Erro: " + ex.Message);
-            }
-            finally // independente do que aconteceu, realiza isso no final
-            {
-                if (port.IsOpen)
-                {
-                    port.Close();
-                }
-            }
-        }
-        static string ObterNomeDaPorta(string porta)
-        {
-        using (ManagementObjectSearcher searcher =
-        new ManagementObjectSearcher(
-            "SELECT * FROM Win32_PnPEntity WHERE Name LIKE '%(" + porta + ")%'"))
-        {
-        foreach (ManagementObject device in searcher.Get())
-        {
-            return device["Name"]?.ToString() ?? "Dispositivo desconhecido";
-        }
-        }
-
-        return "Dispositivo desconhecido";
-}
-    }
-}
+- **Firmware**: STM32CubeIDE, HAL, USB Device Library (CDC)
+- **Aplicação intermediária**: C# (.NET), System.IO.Ports
+- **Servidor**: Node.js, Express
+- **Inteligência Artificial**: Python, scikit-learn
+- **Interface Web**: HTML, CSS, JavaScript, Chart.js

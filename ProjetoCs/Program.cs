@@ -4,71 +4,29 @@ using System.IO.Ports;
 using System.Management;
 using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ProjetoCs
 {
     class Program
     {
-        // Um único HttpClient para todo o programa
         static readonly HttpClient client = new HttpClient();
 
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
-            bool rodando = true;
+            Console.WriteLine("Sistema de leitura STM32");
+            Console.WriteLine();
 
-            // =====================================================
-            // PEGA TODAS AS PORTAS COM DISPONÍVEIS
-            // =====================================================
+            string? portaEscolhida = SelecionarPorta();
 
-            string[] portas = SerialPort.GetPortNames();
-
-            if (portas.Length == 0)
+            if (portaEscolhida == null)
             {
-                Console.WriteLine("Nenhuma porta COM encontrada.");
+                Console.WriteLine("Nenhuma porta foi selecionada.");
                 return;
             }
 
-            Array.Sort(portas);
-
-            Console.WriteLine("PORTAS COM DISPONÍVEIS");
             Console.WriteLine();
-
-            for (int i = 0; i < portas.Length; i++)
-            {
-                string nome = ObterNomeDaPorta(portas[i]);
-
-                Console.WriteLine(
-                    $"{i + 1} - {portas[i]} - {nome}"
-                );
-            }
-
+            Console.WriteLine($"Porta escolhida: {portaEscolhida}");
             Console.WriteLine();
-            Console.Write("Escolha o número da porta COM: ");
-
-            int escolha;
-
-            while (!int.TryParse(Console.ReadLine(), out escolha) ||
-                   escolha < 1 ||
-                   escolha > portas.Length)
-            {
-                Console.Write("Opção inválida. Escolha novamente: ");
-            }
-
-            // =====================================================
-            // PORTA ESCOLHIDA
-            // =====================================================
-
-            string portaEscolhida = portas[escolha - 1];
-
-            Console.WriteLine();
-            Console.WriteLine(
-                "Porta escolhida: " + portaEscolhida
-            );
-
-            // =====================================================
-            // CONFIGURA SERIAL
-            // =====================================================
 
             SerialPort port = new SerialPort();
 
@@ -77,35 +35,25 @@ namespace ProjetoCs
             port.DataBits = 8;
             port.Parity = Parity.None;
             port.StopBits = StopBits.One;
-
-            // Evita ficar bloqueado indefinidamente
             port.ReadTimeout = 1000;
 
             try
             {
                 port.Open();
 
-                Console.WriteLine();
                 Console.WriteLine(
-                    "Porta serial aberta. Estamos conectados na porta "
-                    + port.PortName
-                    + " com velocidade de "
-                    + port.BaudRate
-                    + " bps."
+                    $"Porta {port.PortName} aberta com sucesso."
+                );
+
+                Console.WriteLine(
+                    $"Velocidade: {port.BaudRate} bps"
                 );
 
                 Console.WriteLine();
-                Console.WriteLine(
-                    "Aguardando dados do STM32..."
-                );
-
+                Console.WriteLine("Aguardando dados do STM32...");
                 Console.WriteLine();
 
-                // =================================================
-                // LOOP DE LEITURA
-                // =================================================
-
-                while (rodando)
+                while (true)
                 {
                     int b;
 
@@ -118,15 +66,10 @@ namespace ProjetoCs
                         continue;
                     }
 
-                    // Procura pelo início do protocolo
                     if (b != 0xAA)
                     {
                         continue;
                     }
-
-                    // =================================================
-                    // RECEBE FRAME DE 6 BYTES
-                    // =================================================
 
                     int[] frame = new int[6];
 
@@ -134,24 +77,17 @@ namespace ProjetoCs
 
                     try
                     {
-                        frame[1] = port.ReadByte(); // tipo
-                        frame[2] = port.ReadByte(); // byte alto
-                        frame[3] = port.ReadByte(); // byte baixo
-                        frame[4] = port.ReadByte(); // filtro
-                        frame[5] = port.ReadByte(); // checksum
+                        frame[1] = port.ReadByte();
+                        frame[2] = port.ReadByte();
+                        frame[3] = port.ReadByte();
+                        frame[4] = port.ReadByte();
+                        frame[5] = port.ReadByte();
                     }
                     catch (TimeoutException)
                     {
-                        Console.WriteLine(
-                            "Frame incompleto."
-                        );
-
+                        Console.WriteLine("Frame incompleto.");
                         continue;
                     }
-
-                    // =================================================
-                    // CALCULA CHECKSUM
-                    // =================================================
 
                     int checksumCalculado =
                         frame[0] ^
@@ -169,40 +105,13 @@ namespace ProjetoCs
                         continue;
                     }
 
-                    // =================================================
-                    // RECONSTRÓI VALOR DO ADC
-                    // =================================================
-
                     int valorEscalado =
                         (frame[2] << 8) | frame[3];
-
-                    // =================================================
-                    // CONVERTE ADC PARA PORCENTAGEM
-                    // =================================================
 
                     float valorPot =
                         (valorEscalado / 4095.0f) * 100.0f;
 
-                    // =================================================
-                    // ESTADO DO FILTRO
-                    // =================================================
-
                     bool filtroAtivo = frame[4] == 1;
-
-                    string filtro;
-
-                    if (filtroAtivo)
-                    {
-                        filtro = "true";
-                    }
-                    else
-                    {
-                        filtro = "false";
-                    }
-
-                    // =================================================
-                    // MONTA JSON
-                    // =================================================
 
                     string json =
                         "{"
@@ -211,36 +120,37 @@ namespace ProjetoCs
                             CultureInfo.InvariantCulture)
                         + ","
                         + "\"filtroAtivo\":"
-                        + filtro
+                        + filtroAtivo.ToString().ToLowerInvariant()
                         + "}";
-
-                    // =================================================
-                    // MOSTRA IMEDIATAMENTE NO CONSOLE
-                    // =================================================
 
                     Console.WriteLine(
                         $"{DateTime.Now:HH:mm:ss.fff} | " +
                         $"ADC: {valorEscalado} | " +
                         $"Pot: {valorPot:F1}% | " +
-                        $"Filtro: {filtro}"
+                        $"Filtro: {filtroAtivo}"
                     );
 
                     Console.WriteLine(
-                        "JSON gerado: " + json
+                        "JSON: " + json
                     );
 
-                    // =================================================
-                    // ENVIA PARA API SEM BLOQUEAR A SERIAL
-                    // =================================================
-
-                    _ = EnviarParaAPI(json);
+                    EnviarParaAPI(json);
                 }
             }
             catch (UnauthorizedAccessException)
             {
                 Console.WriteLine(
-                    "Não foi possível acessar a porta. " +
+                    "Não foi possível acessar a porta."
+                );
+
+                Console.WriteLine(
                     "Ela pode estar sendo usada por outro programa."
+                );
+            }
+            catch (IOException)
+            {
+                Console.WriteLine(
+                    "A porta foi desconectada ou deixou de estar disponível."
                 );
             }
             catch (Exception ex)
@@ -258,11 +168,77 @@ namespace ProjetoCs
             }
         }
 
-        // =========================================================
-        // ENVIA PARA API
-        // =========================================================
+        static string? SelecionarPorta()
+        {
+            string[] portas = SerialPort.GetPortNames();
 
-        static async Task EnviarParaAPI(string json)
+            if (portas.Length == 0)
+            {
+                Console.WriteLine(
+                    "Nenhuma porta COM foi encontrada."
+                );
+
+                return null;
+            }
+
+            Array.Sort(portas);
+
+            Console.WriteLine("Portas COM disponíveis");
+            Console.WriteLine();
+
+            for (int i = 0; i < portas.Length; i++)
+            {
+                string? nome =
+                    ObterNomeCompletoDaPorta(portas[i]);
+
+                if (string.IsNullOrEmpty(nome))
+                {
+                    nome = "Dispositivo desconhecido";
+                }
+
+                Console.WriteLine(
+                    $"{i + 1} - {nome}"
+                );
+            }
+
+            Console.WriteLine();
+
+            while (true)
+            {
+                Console.Write(
+                    "Escolha a porta COM (0 para sair): "
+                );
+
+                string? entrada = Console.ReadLine();
+
+                if (!int.TryParse(entrada, out int escolha))
+                {
+                    Console.WriteLine(
+                        "Digite um número válido."
+                    );
+
+                    continue;
+                }
+
+                if (escolha == 0)
+                {
+                    return null;
+                }
+
+                if (escolha < 1 || escolha > portas.Length)
+                {
+                    Console.WriteLine(
+                        "Opção inválida."
+                    );
+
+                    continue;
+                }
+
+                return portas[escolha - 1];
+            }
+        }
+
+        static void EnviarParaAPI(string json)
         {
             try
             {
@@ -274,13 +250,15 @@ namespace ProjetoCs
                     );
 
                 HttpResponseMessage resposta =
-                    await client.PostAsync(
+                    client.PostAsync(
                         "http://127.0.0.1:3000/leituras",
                         content
-                    );
+                    ).Result;
 
                 string textoResposta =
-                    await resposta.Content.ReadAsStringAsync();
+                    resposta.Content
+                        .ReadAsStringAsync()
+                        .Result;
 
                 Console.WriteLine(
                     $"API: {resposta.StatusCode} | {textoResposta}"
@@ -295,26 +273,43 @@ namespace ProjetoCs
             }
         }
 
-        // =========================================================
-        // OBTÉM NOME DO DISPOSITIVO DA PORTA COM
-        // =========================================================
-
-        static string ObterNomeDaPorta(string porta)
+        static string? ObterNomeCompletoDaPorta(string porta)
         {
-            using (ManagementObjectSearcher searcher =
-                new ManagementObjectSearcher(
-                    "SELECT * FROM Win32_PnPEntity WHERE Name LIKE '%("
-                    + porta
-                    + ")%'"))
+            try
             {
+                using ManagementObjectSearcher searcher =
+                    new ManagementObjectSearcher(
+                        "SELECT Name FROM Win32_PnPEntity"
+                    );
+
                 foreach (ManagementObject device in searcher.Get())
                 {
-                    return device["Name"]?.ToString()
-                           ?? "Dispositivo desconhecido";
+                    string? nome =
+                        device["Name"] as string;
+
+                    if (string.IsNullOrEmpty(nome))
+                    {
+                        continue;
+                    }
+
+                    if (nome.IndexOf(
+                        "(" + porta + ")",
+                        StringComparison.OrdinalIgnoreCase
+                    ) >= 0)
+                    {
+                        return nome;
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    "Erro ao consultar dispositivos: "
+                    + ex.Message
+                );
+            }
 
-            return "Dispositivo desconhecido";
+            return null;
         }
     }
 }

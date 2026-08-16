@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
     "net10.0": {
       "runtime.android-arm.runtime.native.System.IO.Ports/10.0.10": {
@@ -1821,23 +1821,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Alunos\\.nuget\\packages\\": {},
+    "C:\\Users\\layon\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Alunos\\Desktop\\ProjetoIntegrado_2TRI\\ProjetoCs\\ProjetoCs.csproj",
+      "projectUniqueName": "C:\\Users\\layon\\OneDrive\\Desktop\\ProjetoIntegrado_2TRI\\ProjetoCs\\ProjetoCs.csproj",
       "projectName": "ProjetoCs",
-      "projectPath": "C:\\Users\\Alunos\\Desktop\\ProjetoIntegrado_2TRI\\ProjetoCs\\ProjetoCs.csproj",
-      "packagesPath": "C:\\Users\\Alunos\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Alunos\\Desktop\\ProjetoIntegrado_2TRI\\ProjetoCs\\obj\\",
+      "projectPath": "C:\\Users\\layon\\OneDrive\\Desktop\\ProjetoIntegrado_2TRI\\ProjetoCs\\ProjetoCs.csproj",
+      "packagesPath": "C:\\Users\\layon\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\layon\\OneDrive\\Desktop\\ProjetoIntegrado_2TRI\\ProjetoCs\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Alunos\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\layon\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -1851,6 +1851,7 @@
       },
       "frameworks": {
         "net10.0": {
+          "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {}
         }
@@ -1865,10 +1866,11 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.200"
+      "SdkAnalysisLevel": "10.0.300"
     },
     "frameworks": {
       "net10.0": {
+        "framework": "net10.0",
         "targetAlias": "net10.0",
         "dependencies": {
           "System.IO.Ports": {
@@ -1896,7 +1898,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",
