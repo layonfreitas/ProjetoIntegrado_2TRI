@@ -20,7 +20,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
-#include "usbd_cdc_if.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -36,6 +35,8 @@
 /* USER CODE BEGIN PD */
 #define BtnFiltro HAL_GPIO_ReadPin(Filtro_GPIO_Port, Filtro_Pin)
 #define TAMANHO_FILTRO 5
+#define LED_ON    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1)
+#define LED_OFF   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -97,8 +98,6 @@ int main(void)
 
   uint8_t filtroAtivo = 0;
 
-  GPIO_PinState estadoAnterior = 1;
-
   uint16_t adc;
 
   float valorFiltrado = 0;
@@ -111,23 +110,19 @@ int main(void)
 
   uint32_t tempoAnterior = 0;
 
-  uint8_t frame[6];
+  uint8_t frame[5];
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  // =========================================================
 	     // BOTÃO DO FILTRO
-	     // =========================================================
-
 	     GPIO_PinState estadoAtual = BtnFiltro;
 
-	     if (estadoAnterior == GPIO_PIN_SET &&
-	         estadoAtual == GPIO_PIN_RESET)
+	     if (estadoAtual == 0)
 	     {
-	         filtroAtivo = !filtroAtivo;
+	         filtroAtivo = !filtroAtivo; // muda o estado da variavel(1 ou 0)
 
 	         // Limpa o filtro quando mudar de estado
 	         soma = 0;
@@ -141,26 +136,21 @@ int main(void)
 	         HAL_Delay(50);
 	     }
 
-	     estadoAnterior = estadoAtual;
 
 
-	     // =========================================================
 	     // LEITURA DO ADC
-	     // =========================================================
+	     HAL_ADC_Start(&hadc1); // inicia a conversão(analogico --> digital)
 
-	     HAL_ADC_Start(&hadc1);
+	     HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY); // espera a converção terminar
 
-	     HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-
-	     adc = HAL_ADC_GetValue(&hadc1);
+	     adc = HAL_ADC_GetValue(&hadc1); // armazena o valor na variavel adc
 
 
-	     // =========================================================
 	     // FILTRO
-	     // =========================================================
-
 	     if (filtroAtivo)
 	     {
+	    	 LED_ON; // ativa o led quando o filtro estivar ativo
+
 	         soma -= leituras[indice];
 
 	         leituras[indice] = adc;
@@ -179,43 +169,39 @@ int main(void)
 	     else
 	     {
 	         valorFiltrado = adc;
+	         LED_OFF;
 	     }
 
 
-	     // =========================================================
 	     // ENVIO A CADA 1 SEGUNDO
-	     // =========================================================
 
 	     if (HAL_GetTick() - tempoAnterior >= 1000)
 	     {
 	         tempoAnterior = HAL_GetTick();
 
-	         uint16_t valor_bruto = (uint16_t)valorFiltrado;
+	         uint16_t valor_bruto = (uint16_t)valorFiltrado; // converte de float para uint
 
-	         frame[0] = 0xAA;
-	         frame[1] = 0x01;
+	         // inicia o protocolo de comunicação
+	         frame[0] = 0xAA; // inicio do pacote
 
 	         // ADC 16 bits
-	         frame[2] = (valor_bruto >> 8) & 0xFF;
-	         frame[3] = valor_bruto & 0xFF;
+	         frame[1] = (valor_bruto >> 8) & 0xFF; // pega os 8 primeiros bits
+	         frame[2] = valor_bruto & 0xFF; // pega o restante
 
 	         // Filtro
-	         frame[4] = filtroAtivo;
+	         frame[3] = filtroAtivo;
 
 	         // Checksum
-	         frame[5] = frame[0] ^
-	                    frame[1] ^
-	                    frame[2] ^
-	                    frame[3] ^
-	                    frame[4];
+	         frame[4] = frame[0] ^ frame[1] ^ frame[2] ^ frame[3];
 
-	         CDC_Transmit_FS(frame, 6);
+	         CDC_Transmit_FS(frame, 6); //  envia para o computador
 	     }
 
 	     HAL_Delay(100);
     /* USER CODE END WHILE */
-  }
 
+    /* USER CODE BEGIN 3 */
+  }
   /* USER CODE END 3 */
 }
 
@@ -322,12 +308,23 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : Filtro_Pin */
   GPIO_InitStruct.Pin = Filtro_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(Filtro_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : LED_Pin */
+  GPIO_InitStruct.Pin = LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
 }
 

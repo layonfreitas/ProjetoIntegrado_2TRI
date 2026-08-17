@@ -3,186 +3,345 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+
     <title>Sistema Inteligente de Monitoramento de Luminosidade</title>
-    
-    <!-- Chart.js para gráficos em tempo real -->
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Font Awesome para ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    >
+
     <style>
         /* ============================================
-           RESET E VARIÁVEIS CSS
+           RESET E VARIÁVEIS
            ============================================ */
-        * {
+
+        *,
+        *::before,
+        *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
         :root {
-            /* Paleta de cores - Dark Mode Industrial */
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
             --bg-card: #1e293b;
             --bg-card-hover: #334155;
-            
-            /* Cores de destaque */
+
             --primary-blue: #3b82f6;
             --primary-blue-dark: #1d4ed8;
             --success-green: #10b981;
             --warning-orange: #f97316;
             --danger-red: #ef4444;
-            
-            /* Cores de texto */
+
             --text-primary: #f1f5f9;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
-            
-            /* Bordas e sombras */
+
             --border-color: #334155;
-            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-            --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-            
-            /* Cores de classificação */
+
             --class-escuro: #3b82f6;
             --class-adequado: #10b981;
             --class-muito-iluminado: #f97316;
-            
-            /* Espaçamento */
+
             --spacing-xs: 0.5rem;
             --spacing-sm: 1rem;
             --spacing-md: 1.5rem;
             --spacing-lg: 2rem;
             --spacing-xl: 3rem;
-            
-            /* Bordas arredondadas */
+
             --radius-sm: 0.375rem;
             --radius-md: 0.5rem;
             --radius-lg: 0.75rem;
             --radius-xl: 1rem;
+
+            --shadow-card:
+                0 4px 6px -1px rgba(0, 0, 0, 0.3),
+                0 2px 4px -1px rgba(0, 0, 0, 0.15);
+
+            --shadow-card-hover:
+                0 10px 15px -3px rgba(0, 0, 0, 0.4),
+                0 4px 6px -2px rgba(0, 0, 0, 0.2);
+        }
+
+        html {
+            width: 100%;
+            min-height: 100%;
+            overflow-x: hidden;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--bg-primary) 0%, #1e293b 100%);
-            color: var(--text-primary);
+            width: 100%;
+            min-width: 0;
             min-height: 100vh;
+            overflow-x: hidden;
+
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
+            color: var(--text-primary);
+
+            background:
+                radial-gradient(
+                    circle at top right,
+                    rgba(59, 130, 246, 0.12),
+                    transparent 35%
+                ),
+                linear-gradient(
+                    135deg,
+                    var(--bg-primary) 0%,
+                    #1e293b 100%
+                );
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
         }
 
         /* ============================================
            CABEÇALHO
            ============================================ */
+
         header {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color);
-            padding: var(--spacing-md) var(--spacing-lg);
             position: sticky;
             top: 0;
             z-index: 100;
+
+            width: 100%;
+            min-width: 0;
+
+            padding: var(--spacing-md) var(--spacing-lg);
+
+            background: rgba(30, 41, 59, 0.88);
+            border-bottom: 1px solid var(--border-color);
             box-shadow: var(--shadow-card);
+
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
+            justify-content: space-between;
             gap: var(--spacing-md);
+
+            width: 100%;
+            max-width: 1400px;
+            min-width: 0;
+            margin: 0 auto;
         }
 
         .header-title {
             display: flex;
             align-items: center;
             gap: var(--spacing-sm);
+
+            min-width: 0;
+            flex: 1 1 auto;
         }
 
         .header-title i {
-            font-size: 2rem;
+            flex: 0 0 auto;
+
             color: var(--warning-orange);
+            font-size: 2rem;
+
             animation: glow 2s ease-in-out infinite alternate;
         }
 
-        @keyframes glow {
-            from {
-                text-shadow: 0 0 5px var(--warning-orange), 0 0 10px var(--warning-orange);
-            }
-            to {
-                text-shadow: 0 0 10px var(--warning-orange), 0 0 20px var(--warning-orange), 0 0 30px var(--warning-orange);
-            }
-        }
-
         .header-title h1 {
+            min-width: 0;
+
+            color: var(--text-primary);
             font-size: 1.5rem;
             font-weight: 600;
-            background: linear-gradient(90deg, var(--text-primary), var(--primary-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            line-height: 1.3;
+
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .header-datetime {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: var(--spacing-xs);
+
+            flex: 0 1 auto;
+            max-width: 100%;
+            min-width: 0;
+
+            padding: var(--spacing-xs) var(--spacing-sm);
+
             color: var(--text-secondary);
             font-size: 0.9rem;
+            text-align: center;
+
             background: var(--bg-card);
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .header-datetime i {
+            flex: 0 0 auto;
             color: var(--primary-blue);
         }
 
+        @keyframes glow {
+            from {
+                text-shadow:
+                    0 0 5px var(--warning-orange),
+                    0 0 10px var(--warning-orange);
+            }
+
+            to {
+                text-shadow:
+                    0 0 10px var(--warning-orange),
+                    0 0 20px var(--warning-orange),
+                    0 0 30px var(--warning-orange);
+            }
+        }
+
         /* ============================================
-           CONTAINER PRINCIPAL
+           CONTAINER
            ============================================ */
+
         .container {
+            width: 100%;
             max-width: 1400px;
+            min-width: 0;
             margin: 0 auto;
             padding: var(--spacing-lg);
         }
 
         /* ============================================
-           GRID LAYOUT
+           ALERTAS
            ============================================ */
+
+        #alerts-container {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .alert-box {
+            display: none;
+            align-items: flex-start;
+            gap: var(--spacing-sm);
+
+            width: 100%;
+            min-width: 0;
+            margin-bottom: var(--spacing-sm);
+            padding: var(--spacing-md);
+
+            border-radius: var(--radius-md);
+
+            animation: slideIn 0.5s ease;
+        }
+
+        .alert-box.show {
+            display: flex;
+        }
+
+        .alert-box i {
+            flex: 0 0 auto;
+            margin-top: 0.2rem;
+            font-size: 1.25rem;
+        }
+
+        .alert-box span {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .alert-warning {
+            color: var(--warning-orange);
+            background: rgba(249, 115, 22, 0.1);
+            border: 1px solid var(--warning-orange);
+        }
+
+        .alert-info {
+            color: var(--primary-blue);
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--primary-blue);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ============================================
+           GRID PRINCIPAL
+           ============================================ */
+
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns:
+                repeat(auto-fit, minmax(min(100%, 300px), 1fr));
             gap: var(--spacing-lg);
+
+            width: 100%;
+            min-width: 0;
             margin-bottom: var(--spacing-lg);
         }
 
         /* ============================================
            CARDS
            ============================================ */
+
         .card {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow-card);
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
             position: relative;
-            overflow: hidden;
+
+            width: 100%;
+            min-width: 0;
+            padding: var(--spacing-lg);
+
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card);
+
+            transition:
+                transform 0.3s ease,
+                box-shadow 0.3s ease;
         }
 
         .card::before {
-            content: '';
+            content: "";
+
             position: absolute;
             top: 0;
-            left: 0;
             right: 0;
+            left: 0;
+
             height: 3px;
-            background: linear-gradient(90deg, var(--primary-blue), var(--primary-blue-dark));
+
+            background: linear-gradient(
+                90deg,
+                var(--primary-blue),
+                var(--primary-blue-dark)
+            );
+
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
         }
 
         .card:hover {
@@ -194,201 +353,294 @@
             display: flex;
             align-items: center;
             gap: var(--spacing-sm);
+
+            width: 100%;
+            min-width: 0;
             margin-bottom: var(--spacing-md);
             padding-bottom: var(--spacing-sm);
+
             border-bottom: 1px solid var(--border-color);
         }
 
         .card-header i {
-            font-size: 1.25rem;
+            flex: 0 0 auto;
             color: var(--primary-blue);
+            font-size: 1.25rem;
         }
 
         .card-header h2 {
+            min-width: 0;
+
+            color: var(--text-primary);
             font-size: 1.1rem;
             font-weight: 600;
-            color: var(--text-primary);
+            line-height: 1.3;
+
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .card-main {
+            grid-column: 1 / -1;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--bg-card) 0%,
+                    rgba(59, 130, 246, 0.1) 100%
+                );
         }
 
         /* ============================================
-           CARD PRINCIPAL - LUMINOSIDADE
+           MONITORAMENTO PRINCIPAL
            ============================================ */
-        .card-main {
-            grid-column: 1 / -1;
-            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(59, 130, 246, 0.1) 100%);
-        }
 
         .main-content {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--spacing-lg);
+            grid-template-columns:
+                minmax(180px, 0.8fr)
+                minmax(0, 1.2fr);
             align-items: center;
+            gap: var(--spacing-lg);
+
+            width: 100%;
+            min-width: 0;
         }
 
         .luminosity-display {
-            text-align: center;
+            min-width: 0;
             padding: var(--spacing-md);
+            text-align: center;
         }
 
         .luminosity-value {
-            font-size: 4rem;
+            max-width: 100%;
+
+            color: var(--primary-blue);
+            font-size: clamp(2.5rem, 8vw, 4rem);
             font-weight: 700;
-            background: linear-gradient(90deg, var(--primary-blue), var(--success-green));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
             line-height: 1;
-            margin-bottom: var(--spacing-xs);
+            overflow-wrap: anywhere;
         }
 
         .luminosity-label {
-            font-size: 1.1rem;
+            margin-top: var(--spacing-xs);
+
             color: var(--text-secondary);
-            text-transform: uppercase;
+            font-size: 1.1rem;
             letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         .luminosity-details {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: var(--spacing-md);
+
+            min-width: 0;
         }
 
         .detail-item {
-            background: var(--bg-primary);
+            min-width: 0;
             padding: var(--spacing-md);
-            border-radius: var(--radius-md);
+
             text-align: center;
+
+            background: var(--bg-primary);
             border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
         }
 
         .detail-value {
+            max-width: 100%;
+            min-width: 0;
+            margin-bottom: var(--spacing-xs);
+
+            color: var(--text-primary);
             font-size: 1.5rem;
             font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: var(--spacing-xs);
+
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .detail-label {
-            font-size: 0.85rem;
             color: var(--text-muted);
-            text-transform: uppercase;
+            font-size: 0.85rem;
             letter-spacing: 1px;
+            line-height: 1.3;
+            text-transform: uppercase;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .filter-status {
             display: inline-block;
+            max-width: 100%;
             padding: var(--spacing-xs) var(--spacing-sm);
+
             border-radius: var(--radius-sm);
+
             font-size: 0.85rem;
             font-weight: 600;
+            line-height: 1.2;
             text-transform: uppercase;
+
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .filter-on {
-            background: rgba(16, 185, 129, 0.2);
             color: var(--success-green);
+            background: rgba(16, 185, 129, 0.2);
             border: 1px solid var(--success-green);
         }
 
         .filter-off {
-            background: rgba(100, 116, 139, 0.2);
             color: var(--text-muted);
+            background: rgba(100, 116, 139, 0.2);
             border: 1px solid var(--text-muted);
         }
 
         /* ============================================
-           CLASSIFICAÇÃO IA
+           CLASSIFICAÇÃO
            ============================================ */
+
         .classification-card {
+            min-width: 0;
             text-align: center;
         }
 
         .classification-indicator {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            margin: 0 auto var(--spacing-md);
             display: flex;
             align-items: center;
             justify-content: center;
+
+            width: 150px;
+            height: 150px;
+            max-width: 80vw;
+            margin: 0 auto var(--spacing-md);
+
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+
             font-size: 3rem;
             transition: all 0.5s ease;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
         }
 
         .classification-escuro {
-            background: radial-gradient(circle, var(--class-escuro), var(--primary-blue-dark));
+            background: radial-gradient(
+                circle,
+                var(--class-escuro),
+                var(--primary-blue-dark)
+            );
             box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
         }
 
         .classification-adequado {
-            background: radial-gradient(circle, var(--class-adequado), #059669);
+            background: radial-gradient(
+                circle,
+                var(--class-adequado),
+                #059669
+            );
             box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
         }
 
         .classification-muito-iluminado {
-            background: radial-gradient(circle, var(--class-muito-iluminado), #ea580c);
+            background: radial-gradient(
+                circle,
+                var(--class-muito-iluminado),
+                #ea580c
+            );
             box-shadow: 0 0 30px rgba(249, 115, 22, 0.5);
         }
 
         .classification-text {
+            max-width: 100%;
+            margin-bottom: var(--spacing-xs);
+
             font-size: 1.5rem;
             font-weight: 700;
-            margin-bottom: var(--spacing-xs);
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .classification-desc {
+            max-width: 100%;
+
             color: var(--text-secondary);
             font-size: 0.95rem;
+
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         /* ============================================
            ESTATÍSTICAS
            ============================================ */
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: var(--spacing-md);
+
+            min-width: 0;
         }
 
         .stat-item {
-            text-align: center;
+            min-width: 0;
             padding: var(--spacing-md);
+
+            text-align: center;
+
             background: var(--bg-primary);
-            border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
         }
 
         .stat-value {
+            max-width: 100%;
+            margin-bottom: var(--spacing-xs);
+
+            color: var(--primary-blue);
             font-size: 1.75rem;
             font-weight: 700;
-            color: var(--primary-blue);
-            margin-bottom: var(--spacing-xs);
+
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .stat-label {
-            font-size: 0.8rem;
             color: var(--text-muted);
-            text-transform: uppercase;
+            font-size: 0.8rem;
             letter-spacing: 1px;
+            line-height: 1.3;
+            text-transform: uppercase;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         /* ============================================
            TENDÊNCIA
            ============================================ */
+
         .trend-indicator {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: var(--spacing-sm);
+
+            width: 100%;
+            min-width: 0;
             padding: var(--spacing-md);
+
             background: var(--bg-primary);
-            border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
         }
 
         .trend-icon {
+            flex: 0 0 auto;
             font-size: 2rem;
             transition: all 0.3s ease;
         }
@@ -407,79 +659,64 @@
             color: var(--text-muted);
         }
 
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-
         .trend-text {
+            min-width: 0;
+
             font-size: 1.1rem;
             font-weight: 600;
+
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
-        /* ============================================
-           ALERTAS
-           ============================================ */
-        .alert-box {
-            padding: var(--spacing-md);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-sm);
-            animation: slideIn 0.5s ease;
-            display: none;
-        }
-
-        .alert-box.show {
-            display: flex;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
+        @keyframes bounce {
+            0%,
+            100% {
+                transform: translateY(0);
             }
-            to {
-                opacity: 1;
-                transform: translateX(0);
+
+            50% {
+                transform: translateY(-5px);
             }
-        }
-
-        .alert-warning {
-            background: rgba(249, 115, 22, 0.1);
-            border: 1px solid var(--warning-orange);
-            color: var(--warning-orange);
-        }
-
-        .alert-info {
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid var(--primary-blue);
-            color: var(--primary-blue);
-        }
-
-        .alert-box i {
-            font-size: 1.25rem;
         }
 
         /* ============================================
            GRÁFICO
            ============================================ */
+
+        .chart-card {
+            margin-bottom: var(--spacing-lg);
+        }
+
         .chart-container {
             position: relative;
-            height: 300px;
+
             width: 100%;
+            max-width: 100%;
+            height: 300px;
+            min-height: 240px;
+        }
+
+        .chart-container canvas {
+            display: block;
+            max-width: 100%;
         }
 
         /* ============================================
-           TABELA DE HISTÓRICO
+           TABELA
            ============================================ */
+
         .table-container {
+            width: 100%;
+            max-width: 100%;
             overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
         }
 
         table {
             width: 100%;
+            min-width: 680px;
             border-collapse: collapse;
         }
 
@@ -489,86 +726,64 @@
 
         th {
             padding: var(--spacing-sm) var(--spacing-md);
-            text-align: left;
+
+            color: var(--text-secondary);
             font-size: 0.85rem;
             font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
             letter-spacing: 1px;
+            text-align: left;
+            text-transform: uppercase;
+
             border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
         }
 
         td {
             padding: var(--spacing-sm) var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
+
             font-size: 0.9rem;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
         }
 
-        tr:hover {
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
             background: var(--bg-card-hover);
         }
 
         .badge {
             display: inline-block;
             padding: 0.25rem 0.75rem;
+
             border-radius: 9999px;
+
             font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
         }
 
         .badge-escuro {
-            background: rgba(59, 130, 246, 0.2);
             color: var(--class-escuro);
+            background: rgba(59, 130, 246, 0.2);
         }
 
         .badge-adequado {
-            background: rgba(16, 185, 129, 0.2);
             color: var(--class-adequado);
+            background: rgba(16, 185, 129, 0.2);
         }
 
         .badge-muito-iluminado {
-            background: rgba(249, 115, 22, 0.2);
             color: var(--class-muito-iluminado);
+            background: rgba(249, 115, 22, 0.2);
         }
 
         /* ============================================
-           RESPONSIVIDADE
+           ESTADOS
            ============================================ */
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                text-align: center;
-            }
 
-            .header-title h1 {
-                font-size: 1.25rem;
-            }
-
-            .luminosity-value {
-                font-size: 3rem;
-            }
-
-            .luminosity-details {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .container {
-                padding: var(--spacing-sm);
-            }
-
-            .card {
-                padding: var(--spacing-md);
-            }
-        }
-
-        /* ============================================
-           ANIMAÇÕES DE CARREGAMENTO
-           ============================================ */
         .loading {
             opacity: 0.5;
             pointer-events: none;
@@ -579,153 +794,451 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
         }
 
         /* ============================================
            RODAPÉ
            ============================================ */
+
         footer {
-            text-align: center;
+            width: 100%;
+            min-width: 0;
+            margin-top: var(--spacing-xl);
             padding: var(--spacing-lg);
+
             color: var(--text-muted);
             font-size: 0.85rem;
+            line-height: 1.5;
+            text-align: center;
+
             border-top: 1px solid var(--border-color);
-            margin-top: var(--spacing-xl);
+        }
+
+        footer p {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        /* ============================================
+           TABLET
+           ============================================ */
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .luminosity-details {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        /* ============================================
+           CELULAR
+           ============================================ */
+
+        @media (max-width: 600px) {
+            header {
+                padding: var(--spacing-sm);
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .header-title {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .header-title i {
+                font-size: 1.5rem;
+            }
+
+            .header-title h1 {
+                font-size: 1.1rem;
+            }
+
+            .header-datetime {
+                width: 100%;
+                font-size: 0.8rem;
+            }
+
+            .container {
+                padding: var(--spacing-sm);
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-sm);
+            }
+
+            .card {
+                padding: var(--spacing-md);
+            }
+
+            .card-main {
+                grid-column: auto;
+            }
+
+            .card-header h2 {
+                font-size: 0.95rem;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .luminosity-value {
+                font-size: clamp(2.5rem, 15vw, 4rem);
+            }
+
+            .luminosity-label {
+                font-size: 0.9rem;
+            }
+
+            .luminosity-details {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-sm);
+            }
+
+            .classification-indicator {
+                width: 120px;
+                height: 120px;
+                font-size: 2.5rem;
+            }
+
+            .classification-text {
+                font-size: 1.25rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: var(--spacing-xs);
+            }
+
+            .stat-item {
+                padding: var(--spacing-sm) var(--spacing-xs);
+            }
+
+            .stat-value {
+                font-size: clamp(1.1rem, 6vw, 1.5rem);
+            }
+
+            .stat-label {
+                font-size: 0.65rem;
+                letter-spacing: 0.5px;
+            }
+
+            .trend-indicator {
+                padding: var(--spacing-sm);
+            }
+
+            .trend-text {
+                font-size: 1rem;
+            }
+
+            .chart-container {
+                height: 240px;
+                min-height: 240px;
+            }
+
+            footer {
+                padding: var(--spacing-md) var(--spacing-sm);
+            }
+        }
+
+        /* ============================================
+           CELULARES MUITO PEQUENOS
+           ============================================ */
+
+        @media (max-width: 380px) {
+            .header-title {
+                align-items: flex-start;
+                justify-content: flex-start;
+                text-align: left;
+            }
+
+            .header-title h1 {
+                font-size: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: var(--spacing-sm);
+
+                text-align: left;
+            }
+
+            .stat-value,
+            .stat-label {
+                margin-bottom: 0;
+            }
         }
     </style>
 </head>
+
 <body>
     <!-- ============================================
          CABEÇALHO
          ============================================ -->
+
     <header>
         <div class="header-content">
             <div class="header-title">
-                <i class="fas fa-lightbulb"></i>
-                <h1>Sistema Inteligente de Monitoramento de Luminosidade</h1>
+                <i class="fas fa-lightbulb" aria-hidden="true"></i>
+
+                <h1>
+                    Sistema Inteligente de Monitoramento de Luminosidade
+                </h1>
             </div>
+
             <div class="header-datetime">
-                <i class="fas fa-clock"></i>
+                <i class="fas fa-clock" aria-hidden="true"></i>
                 <span id="current-datetime">--/--/---- --:--:--</span>
             </div>
         </div>
     </header>
 
     <!-- ============================================
-         CONTAINER PRINCIPAL
+         CONTEÚDO PRINCIPAL
          ============================================ -->
-    <div class="container">
+
+    <main class="container">
         <!-- ALERTAS -->
-        <div id="alerts-container">
-            <div class="alert-box alert-warning" id="alert-muito-iluminado">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>⚠ Luminosidade acima do recomendado.</span>
+
+        <section id="alerts-container" aria-live="polite">
+            <div
+                class="alert-box alert-warning"
+                id="alert-muito-iluminado"
+                role="alert"
+            >
+                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                <span>Luminosidade acima do recomendado.</span>
             </div>
-            <div class="alert-box alert-info" id="alert-escuro">
-                <i class="fas fa-info-circle"></i>
-                <span>⚠ Ambiente com baixa luminosidade.</span>
+
+            <div
+                class="alert-box alert-info"
+                id="alert-escuro"
+                role="alert"
+            >
+                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                <span>Ambiente com baixa luminosidade.</span>
             </div>
-        </div>
+        </section>
 
         <!-- GRID PRINCIPAL -->
-        <div class="dashboard-grid">
-            <!-- CARD PRINCIPAL -->
-            <div class="card card-main">
+
+        <section class="dashboard-grid">
+            <!-- MONITORAMENTO PRINCIPAL -->
+
+            <article class="card card-main">
                 <div class="card-header">
-                    <i class="fas fa-chart-line"></i>
+                    <i class="fas fa-chart-line" aria-hidden="true"></i>
                     <h2>Monitoramento em Tempo Real</h2>
                 </div>
+
                 <div class="main-content">
                     <div class="luminosity-display">
-                        <div class="luminosity-value" id="luminosity-value">--</div>
-                        <div class="luminosity-label">Luminosidade (%)</div>
+                        <div
+                            class="luminosity-value"
+                            id="luminosity-value"
+                            aria-live="polite"
+                        >
+                            --
+                        </div>
+
+                        <div class="luminosity-label">
+                            Luminosidade (%)
+                        </div>
                     </div>
+
                     <div class="luminosity-details">
                         <div class="detail-item">
-                            <div class="detail-value" id="confidence-value">--</div>
-                            <div class="detail-label">Confiança da IA (%)</div>
+                            <div
+                                class="detail-value"
+                                id="confidence-value"
+                            >
+                                --
+                            </div>
+
+                            <div class="detail-label">
+                                Confiança da IA (%)
+                            </div>
                         </div>
+
                         <div class="detail-item">
                             <div class="detail-value">
-                                <span class="filter-status filter-off" id="filter-status">Desligado</span>
+                                <span
+                                    class="filter-status filter-off"
+                                    id="filter-status"
+                                >
+                                    Desligado
+                                </span>
                             </div>
-                            <div class="detail-label">Estado do Filtro</div>
+
+                            <div class="detail-label">
+                                Estado do Filtro
+                            </div>
                         </div>
+
                         <div class="detail-item">
-                            <div class="detail-value" id="last-update">--:--:--</div>
-                            <div class="detail-label">Última Atualização</div>
+                            <div
+                                class="detail-value"
+                                id="last-update"
+                            >
+                                --:--:--
+                            </div>
+
+                            <div class="detail-label">
+                                Última Atualização
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </article>
 
             <!-- CLASSIFICAÇÃO IA -->
-            <div class="card classification-card">
+
+            <article class="card classification-card">
                 <div class="card-header">
-                    <i class="fas fa-brain"></i>
+                    <i class="fas fa-brain" aria-hidden="true"></i>
                     <h2>Classificação IA</h2>
                 </div>
-                <div class="classification-indicator" id="classification-indicator">
-                    <i class="fas fa-question" style="color: white;"></i>
+
+                <div
+                    class="classification-indicator"
+                    id="classification-indicator"
+                    aria-label="Classificação atual"
+                >
+                    <i
+                        class="fas fa-question"
+                        style="color: white;"
+                        aria-hidden="true"
+                    ></i>
                 </div>
-                <div class="classification-text" id="classification-text">Aguardando...</div>
-                <div class="classification-desc" id="classification-desc">Recebendo dados da API</div>
-            </div>
+
+                <div
+                    class="classification-text"
+                    id="classification-text"
+                >
+                    Aguardando...
+                </div>
+
+                <div
+                    class="classification-desc"
+                    id="classification-desc"
+                >
+                    Recebendo dados da API
+                </div>
+            </article>
 
             <!-- ESTATÍSTICAS -->
-            <div class="card">
+
+            <article class="card">
                 <div class="card-header">
-                    <i class="fas fa-chart-bar"></i>
+                    <i class="fas fa-chart-bar" aria-hidden="true"></i>
                     <h2>Estatísticas</h2>
                 </div>
+
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <div class="stat-value" id="stat-average">--</div>
-                        <div class="stat-label">Média</div>
+                        <div class="stat-value" id="stat-average">
+                            --
+                        </div>
+
+                        <div class="stat-label">
+                            Média
+                        </div>
                     </div>
+
                     <div class="stat-item">
-                        <div class="stat-value" id="stat-max">--</div>
-                        <div class="stat-label">Máximo</div>
+                        <div class="stat-value" id="stat-max">
+                            --
+                        </div>
+
+                        <div class="stat-label">
+                            Máximo
+                        </div>
                     </div>
+
                     <div class="stat-item">
-                        <div class="stat-value" id="stat-min">--</div>
-                        <div class="stat-label">Mínimo</div>
+                        <div class="stat-value" id="stat-min">
+                            --
+                        </div>
+
+                        <div class="stat-label">
+                            Mínimo
+                        </div>
                     </div>
                 </div>
-            </div>
+            </article>
 
             <!-- TENDÊNCIA -->
-            <div class="card">
+
+            <article class="card">
                 <div class="card-header">
-                    <i class="fas fa-chart-line"></i>
+                    <i class="fas fa-chart-line" aria-hidden="true"></i>
                     <h2>Tendência</h2>
                 </div>
-                <div class="trend-indicator">
-                    <i class="fas fa-arrow-right trend-icon trend-stable" id="trend-icon"></i>
-                    <span class="trend-text" id="trend-text">Estável</span>
-                </div>
-            </div>
-        </div>
 
-        <!-- GRÁFICO EM TEMPO REAL -->
-        <div class="card" style="margin-bottom: var(--spacing-lg);">
+                <div class="trend-indicator">
+                    <i
+                        class="fas fa-arrow-right trend-icon trend-stable"
+                        id="trend-icon"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span
+                        class="trend-text"
+                        id="trend-text"
+                    >
+                        Estável
+                    </span>
+                </div>
+            </article>
+        </section>
+
+        <!-- GRÁFICO -->
+
+        <section class="card chart-card">
             <div class="card-header">
-                <i class="fas fa-chart-area"></i>
+                <i class="fas fa-chart-area" aria-hidden="true"></i>
                 <h2>Gráfico em Tempo Real</h2>
             </div>
-            <div class="chart-container">
-                <canvas id="realtime-chart"></canvas>
-            </div>
-        </div>
 
-        <!-- HISTÓRICO DE LEITURAS -->
-        <div class="card">
+            <div class="chart-container">
+                <canvas
+                    id="realtime-chart"
+                    aria-label="Gráfico de luminosidade em tempo real"
+                ></canvas>
+            </div>
+        </section>
+
+        <!-- HISTÓRICO -->
+
+        <section class="card">
             <div class="card-header">
-                <i class="fas fa-history"></i>
+                <i class="fas fa-history" aria-hidden="true"></i>
                 <h2>Histórico das Últimas Leituras</h2>
             </div>
+
             <div class="table-container">
                 <table>
                     <thead>
@@ -736,127 +1249,187 @@
                             <th>Classificação</th>
                         </tr>
                     </thead>
+
                     <tbody id="history-table-body">
                         <tr>
-                            <td colspan="4" style="text-align: center; color: var(--text-muted);">Aguardando dados...</td>
+                            <td
+                                colspan="4"
+                                style="
+                                    text-align: center;
+                                    color: var(--text-muted);
+                                "
+                            >
+                                Aguardando dados...
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <!-- ============================================
          RODAPÉ
          ============================================ -->
+
     <footer>
-        <p>Sistema Inteligente de Monitoramento de Luminosidade © 2026 | Desenvolvido para IoT com STM32</p>
+        <p>
+            Sistema Inteligente de Monitoramento de Luminosidade © 2026 |
+            Desenvolvido para IoT com STM32
+        </p>
     </footer>
 
     <!-- ============================================
          JAVASCRIPT
          ============================================ -->
-    <script>
-        // ============================================
-        // VARIÁVEIS GLOBAIS
-        // ============================================
-        let chart;
-        let readingsHistory = [];
-        const MAX_HISTORY = 30;
-        const API_URL = 'http://localhost:3000/leituras'; // URL da API REST (devolve o histórico completo)
 
-        // ============================================
-        // INICIALIZAÇÃO
-        // ============================================
-        document.addEventListener('DOMContentLoaded', function() {
+    <script>
+        /* ============================================
+           CONFIGURAÇÕES
+           ============================================ */
+
+        const API_URL = "http://localhost:3000/leituras";
+        const MAX_HISTORY = 30;
+        const FETCH_INTERVAL = 1000;
+
+        let chart = null;
+        let readingsHistory = [];
+        let isFetching = false;
+
+        /* ============================================
+           INICIALIZAÇÃO
+           ============================================ */
+
+        document.addEventListener("DOMContentLoaded", () => {
             initializeChart();
             updateDateTime();
             setInterval(updateDateTime, 1000);
+
             fetchData();
-            setInterval(fetchData, 1000); // Atualiza a cada segundo
+            setInterval(fetchData, FETCH_INTERVAL);
         });
 
-        // ============================================
-        // ATUALIZAR DATA E HORA
-        // ============================================
+        /* ============================================
+           DATA E HORA
+           ============================================ */
+
         function updateDateTime() {
             const now = new Date();
+
             const options = {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false
             };
-            document.getElementById('current-datetime').textContent = now.toLocaleDateString('pt-BR', options);
+
+            document.getElementById("current-datetime").textContent =
+                now.toLocaleString("pt-BR", options);
         }
 
-        // ============================================
-        // INICIALIZAR GRÁFICO CHART.JS
-        // ============================================
+        /* ============================================
+           INICIALIZAÇÃO DO GRÁFICO
+           ============================================ */
+
         function initializeChart() {
-            const ctx = document.getElementById('realtime-chart').getContext('2d');
-            
-            chart = new Chart(ctx, {
-                type: 'line',
+            const canvas = document.getElementById("realtime-chart");
+
+            if (!canvas) {
+                return;
+            }
+
+            const context = canvas.getContext("2d");
+
+            chart = new Chart(context, {
+                type: "line",
+
                 data: {
                     labels: [],
-                    datasets: [{
-                        label: 'Luminosidade (%)',
-                        data: [],
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4, // Linha suave
-                        pointRadius: 3,
-                        pointHoverRadius: 5
-                    }]
+
+                    datasets: [
+                        {
+                            label: "Luminosidade (%)",
+                            data: [],
+                            borderColor: "#3b82f6",
+                            backgroundColor: "rgba(59, 130, 246, 0.1)",
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: "#3b82f6",
+                            pointBorderColor: "#f1f5f9"
+                        }
+                    ]
                 },
+
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    resizeDelay: 150,
+
                     animation: {
                         duration: 500,
-                        easing: 'easeInOutQuart'
+                        easing: "easeInOutQuart"
                     },
+
+                    layout: {
+                        padding: {
+                            top: 8,
+                            right: 12,
+                            bottom: 8,
+                            left: 8
+                        }
+                    },
+
                     scales: {
                         x: {
                             grid: {
-                                color: 'rgba(148, 163, 184, 0.1)'
+                                color: "rgba(148, 163, 184, 0.1)"
                             },
+
                             ticks: {
-                                color: '#94a3b8',
+                                color: "#94a3b8",
                                 maxRotation: 0,
-                                maxTicksLimit: 10
+                                maxTicksLimit: 8,
+                                autoSkip: true
                             }
                         },
+
                         y: {
                             min: 0,
                             max: 100,
+
                             grid: {
-                                color: 'rgba(148, 163, 184, 0.1)'
+                                color: "rgba(148, 163, 184, 0.1)"
                             },
+
                             ticks: {
-                                color: '#94a3b8',
-                                callback: function(value) {
-                                    return value + '%';
+                                color: "#94a3b8",
+
+                                callback(value) {
+                                    return `${value}%`;
                                 }
                             }
                         }
                     },
+
                     plugins: {
                         legend: {
                             labels: {
-                                color: '#f1f5f9'
+                                color: "#f1f5f9",
+                                boxWidth: 12
                             }
                         },
+
                         tooltip: {
-                            backgroundColor: 'rgba(30, 41, 59, 0.9)',
-                            titleColor: '#f1f5f9',
-                            bodyColor: '#94a3b8',
-                            borderColor: '#334155',
+                            backgroundColor: "rgba(30, 41, 59, 0.95)",
+                            titleColor: "#f1f5f9",
+                            bodyColor: "#94a3b8",
+                            borderColor: "#334155",
                             borderWidth: 1
                         }
                     }
@@ -864,230 +1437,413 @@
             });
         }
 
-        // ============================================
-        // BUSCAR DADOS DA API
-        // ============================================
+        /* ============================================
+           BUSCA DADOS DA API
+           ============================================ */
+
         async function fetchData() {
+            if (isFetching) {
+                return;
+            }
+
+            isFetching = true;
+
             try {
-                // CHAMADA REAL À API REST - devolve o histórico completo (array)
-                const response = await fetch(API_URL);
-                
+                const response = await fetch(API_URL, {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/json"
+                    },
+                    cache: "no-store"
+                });
+
                 if (!response.ok) {
-                    throw new Error('Erro na resposta da API: ' + response.status);
+                    throw new Error(
+                        `Erro na resposta da API: ${response.status}`
+                    );
                 }
-                
+
                 const historico = await response.json();
 
                 if (!Array.isArray(historico) || historico.length === 0) {
-                    return; // ainda não chegou nenhuma leitura
+                    showWaitingState();
+                    return;
                 }
 
-                const data = historico[historico.length - 1]; // leitura mais recente
+                const normalizedHistory = historico
+                    .map(normalizeReading)
+                    .filter(Boolean);
 
-                readingsHistory = historico.slice(-MAX_HISTORY);
+                if (normalizedHistory.length === 0) {
+                    showWaitingState();
+                    return;
+                }
 
-                updateInterface(data);
+                readingsHistory = normalizedHistory.slice(-MAX_HISTORY);
+
+                const latestReading =
+                    readingsHistory[readingsHistory.length - 1];
+
+                updateInterface(latestReading);
                 updateChart(readingsHistory);
                 updateHistory(readingsHistory);
                 updateStatistics();
                 updateTrend();
-                updateAlerts(data.classificacao);
-                
+                updateAlerts(latestReading.classificacao);
             } catch (error) {
-                console.error('Erro ao buscar dados da API:', error);
-                document.getElementById('luminosity-value').textContent = 'Erro';
-                document.getElementById('classification-text').textContent = 'Erro de conexão';
+                console.error("Erro ao buscar dados da API:", error);
+                showConnectionError();
+            } finally {
+                isFetching = false;
             }
         }
 
-        // ============================================
-        // ATUALIZAR INTERFACE
-        // ============================================
-        function updateInterface(data) {
-            // Luminosidade (valor do sensor, em %)
-            document.getElementById('luminosity-value').textContent = data.valor.toFixed(1);
-            
-            // Confiança da IA na classificação prevista (maior probabilidade)
-            const confiancas = data.probabilidades ? Object.values(data.probabilidades) : [];
-            const maiorConfianca = confiancas.length ? Math.max(...confiancas) * 100 : 0;
-            document.getElementById('confidence-value').textContent = maiorConfianca.toFixed(0) + '%';
-            
-            // Filtro
-            const filterStatus = document.getElementById('filter-status');
-            if (data.filtroAtivo) {
-                filterStatus.textContent = 'Ligado';
-                filterStatus.className = 'filter-status filter-on';
-            } else {
-                filterStatus.textContent = 'Desligado';
-                filterStatus.className = 'filter-status filter-off';
+        /* ============================================
+           NORMALIZAÇÃO DOS DADOS
+           ============================================ */
+
+        function normalizeReading(reading) {
+            if (!reading || typeof reading !== "object") {
+                return null;
             }
-            
-            // Última atualização
-            document.getElementById('last-update').textContent = data.horario;
-            
-            // Classificação IA - usa a classificação que vem da API
+
+            const valor = Number(reading.valor);
+
+            if (!Number.isFinite(valor)) {
+                return null;
+            }
+
+            return {
+                valor,
+                horario: reading.horario ?? "--:--:--",
+                filtroAtivo: Boolean(reading.filtroAtivo),
+                classificacao: reading.classificacao ?? "Desconhecida",
+                probabilidades:
+                    reading.probabilidades &&
+                    typeof reading.probabilidades === "object"
+                        ? reading.probabilidades
+                        : {}
+            };
+        }
+
+        /* ============================================
+           ESTADOS DE INTERFACE
+           ============================================ */
+
+        function showWaitingState() {
+            document.getElementById("luminosity-value").textContent = "--";
+            document.getElementById("confidence-value").textContent = "--";
+            document.getElementById("last-update").textContent = "--:--:--";
+
+            document.getElementById("classification-text").textContent =
+                "Aguardando...";
+
+            document.getElementById("classification-desc").textContent =
+                "Nenhum dado recebido da API";
+        }
+
+        function showConnectionError() {
+            document.getElementById("luminosity-value").textContent = "Erro";
+
+            document.getElementById("confidence-value").textContent = "--";
+            document.getElementById("last-update").textContent = "--:--:--";
+
+            document.getElementById("classification-text").textContent =
+                "Erro de conexão";
+
+            document.getElementById("classification-desc").textContent =
+                "Verifique se a API está disponível";
+        }
+
+        /* ============================================
+           ATUALIZAÇÃO DA INTERFACE
+           ============================================ */
+
+        function updateInterface(data) {
+            const valor = Number(data.valor);
+
+            document.getElementById("luminosity-value").textContent =
+                Number.isFinite(valor) ? valor.toFixed(1) : "--";
+
+            const confiancas = Object.values(data.probabilidades)
+                .map(Number)
+                .filter(Number.isFinite);
+
+            const maiorConfianca = confiancas.length
+                ? Math.max(...confiancas) * 100
+                : 0;
+
+            document.getElementById("confidence-value").textContent =
+                `${maiorConfianca.toFixed(0)}%`;
+
+            const filterStatus =
+                document.getElementById("filter-status");
+
+            if (data.filtroAtivo) {
+                filterStatus.textContent = "Ligado";
+                filterStatus.className =
+                    "filter-status filter-on";
+            } else {
+                filterStatus.textContent = "Desligado";
+                filterStatus.className =
+                    "filter-status filter-off";
+            }
+
+            document.getElementById("last-update").textContent =
+                data.horario;
+
             updateClassification(data.classificacao);
         }
 
-        // ============================================
-        // ATUALIZAR CLASSIFICAÇÃO (usa dados da API)
-        // ============================================
+        /* ============================================
+           CLASSIFICAÇÃO
+           ============================================ */
+
         function updateClassification(classificacao) {
-            const indicator = document.getElementById('classification-indicator');
-            const text = document.getElementById('classification-text');
-            const desc = document.getElementById('classification-desc');
-            
-            // Remove todas as classes anteriores
-            indicator.className = 'classification-indicator';
-            
-            let icon, description;
-            
-            // A classificação já vem pronta da API (modelo de IA em Python)
-            if (classificacao === 'Pouca') {
-                indicator.classList.add('classification-escuro');
-                icon = 'fa-moon';
-                description = 'Ambiente com baixa luminosidade.';
-            } else if (classificacao === 'Media') {
-                indicator.classList.add('classification-adequado');
-                icon = 'fa-sun';
-                description = 'Nível de iluminação ideal.';
-            } else if (classificacao === 'Muita') {
-                indicator.classList.add('classification-muito-iluminado');
-                icon = 'fa-lightbulb';
-                description = 'Excesso de luminosidade.';
-            } else {
-                icon = 'fa-question';
-                description = 'Aguardando dados...';
+            const indicator =
+                document.getElementById("classification-indicator");
+
+            const text =
+                document.getElementById("classification-text");
+
+            const description =
+                document.getElementById("classification-desc");
+
+            indicator.className = "classification-indicator";
+
+            let icon = "fa-question";
+            let desc = "Aguardando dados...";
+            let textColor = "var(--text-primary)";
+
+            if (classificacao === "Pouca") {
+                indicator.classList.add("classification-escuro");
+                icon = "fa-moon";
+                desc = "Ambiente com baixa luminosidade.";
+                textColor = "var(--class-escuro)";
+            } else if (classificacao === "Media") {
+                indicator.classList.add("classification-adequado");
+                icon = "fa-sun";
+                desc = "Nível de iluminação ideal.";
+                textColor = "var(--class-adequado)";
+            } else if (classificacao === "Muita") {
+                indicator.classList.add(
+                    "classification-muito-iluminado"
+                );
+
+                icon = "fa-lightbulb";
+                desc = "Excesso de luminosidade.";
+                textColor = "var(--class-muito-iluminado)";
             }
-            
-            indicator.innerHTML = `<i class="fas ${icon}" style="color: white;"></i>`;
-            text.textContent = classificacao;
-            desc.textContent = description;
-            
-            // Muda cor do texto conforme classificação
-            if (classificacao === 'Pouca') {
-                text.style.color = 'var(--class-escuro)';
-            } else if (classificacao === 'Media') {
-                text.style.color = 'var(--class-adequado)';
-            } else if (classificacao === 'Muita') {
-                text.style.color = 'var(--class-muito-iluminado)';
-            }
+
+            indicator.innerHTML = `
+                <i
+                    class="fas ${icon}"
+                    style="color: white;"
+                    aria-hidden="true"
+                ></i>
+            `;
+
+            text.textContent = classificacao || "Aguardando...";
+            text.style.color = textColor;
+            description.textContent = desc;
         }
 
-        // ============================================
-        // ATUALIZAR GRÁFICO
-        // ============================================
+        /* ============================================
+           GRÁFICO
+           ============================================ */
+
         function updateChart(historico) {
-            // Reconstrói o gráfico a partir do histórico completo vindo da API
-            chart.data.labels = historico.map(r => r.horario);
-            chart.data.datasets[0].data = historico.map(r => r.valor);
-            chart.update();
+            if (!chart) {
+                return;
+            }
+
+            chart.data.labels = historico.map(
+                reading => reading.horario
+            );
+
+            chart.data.datasets[0].data = historico.map(
+                reading => reading.valor
+            );
+
+            chart.update("none");
         }
 
-        // ============================================
-        // ATUALIZAR HISTÓRICO
-        // ============================================
+        /* ============================================
+           HISTÓRICO
+           ============================================ */
+
         function updateHistory(historico) {
-            // Mostra as últimas 10 leituras, mais recente primeiro
+            const tbody =
+                document.getElementById("history-table-body");
+
             const ultimas10 = historico.slice(-10).reverse();
 
-            const tbody = document.getElementById('history-table-body');
-            tbody.innerHTML = '';
-            
-            ultimas10.forEach(reading => {
-                const tr = document.createElement('tr');
-                
-                let badgeClass;
-                if (reading.classificacao === 'Pouca') {
-                    badgeClass = 'badge-escuro';
-                } else if (reading.classificacao === 'Media') {
-                    badgeClass = 'badge-adequado';
-                } else if (reading.classificacao === 'Muita') {
-                    badgeClass = 'badge-muito-iluminado';
-                }
-                
-                tr.innerHTML = `
-                    <td>${reading.horario}</td>
-                    <td>${reading.filtroAtivo ? 'Ligado' : 'Desligado'}</td>
-                    <td>${reading.valor.toFixed(1)}%</td>
-                    <td><span class="badge ${badgeClass}">${reading.classificacao}</span></td>
+            tbody.innerHTML = "";
+
+            if (ultimas10.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td
+                            colspan="4"
+                            style="
+                                text-align: center;
+                                color: var(--text-muted);
+                            "
+                        >
+                            Aguardando dados...
+                        </td>
+                    </tr>
                 `;
-                
+
+                return;
+            }
+
+            ultimas10.forEach(reading => {
+                const tr = document.createElement("tr");
+
+                let badgeClass = "badge-adequado";
+
+                if (reading.classificacao === "Pouca") {
+                    badgeClass = "badge-escuro";
+                } else if (reading.classificacao === "Muita") {
+                    badgeClass = "badge-muito-iluminado";
+                }
+
+                const horario = document.createElement("td");
+                horario.textContent = reading.horario;
+
+                const filtro = document.createElement("td");
+                filtro.textContent = reading.filtroAtivo
+                    ? "Ligado"
+                    : "Desligado";
+
+                const valor = document.createElement("td");
+                valor.textContent = `${reading.valor.toFixed(1)}%`;
+
+                const classificacao = document.createElement("td");
+
+                const badge = document.createElement("span");
+                badge.className = `badge ${badgeClass}`;
+                badge.textContent = reading.classificacao;
+
+                classificacao.appendChild(badge);
+
+                tr.appendChild(horario);
+                tr.appendChild(filtro);
+                tr.appendChild(valor);
+                tr.appendChild(classificacao);
+
                 tbody.appendChild(tr);
             });
         }
 
-        // ============================================
-        // ATUALIZAR ESTATÍSTICAS
-        // ============================================
-        function updateStatistics() {
-            if (readingsHistory.length === 0) return;
-            
-            const luminosidades = readingsHistory.map(r => r.valor);
-            
-            const average = luminosidades.reduce((a, b) => a + b, 0) / luminosidades.length;
-            const max = Math.max(...luminosidades);
-            const min = Math.min(...luminosidades);
-            
-            document.getElementById('stat-average').textContent = average.toFixed(1) + '%';
-            document.getElementById('stat-max').textContent = max.toFixed(1) + '%';
-            document.getElementById('stat-min').textContent = min.toFixed(1) + '%';
-        }
+        /* ============================================
+           ESTATÍSTICAS
+           ============================================ */
 
-        // ============================================
-        // ATUALIZAR TENDÊNCIA
-        // ============================================
-        function updateTrend() {
-            if (readingsHistory.length < 3) {
-                document.getElementById('trend-text').textContent = 'Estável';
+        function updateStatistics() {
+            if (readingsHistory.length === 0) {
                 return;
             }
-            
+
+            const luminosidades = readingsHistory
+                .map(reading => Number(reading.valor))
+                .filter(Number.isFinite);
+
+            if (luminosidades.length === 0) {
+                return;
+            }
+
+            const average =
+                luminosidades.reduce(
+                    (total, value) => total + value,
+                    0
+                ) / luminosidades.length;
+
+            const maximum = Math.max(...luminosidades);
+            const minimum = Math.min(...luminosidades);
+
+            document.getElementById("stat-average").textContent =
+                `${average.toFixed(1)}%`;
+
+            document.getElementById("stat-max").textContent =
+                `${maximum.toFixed(1)}%`;
+
+            document.getElementById("stat-min").textContent =
+                `${minimum.toFixed(1)}%`;
+        }
+
+        /* ============================================
+           TENDÊNCIA
+           ============================================ */
+
+        function updateTrend() {
+            const icon = document.getElementById("trend-icon");
+            const text = document.getElementById("trend-text");
+
+            if (readingsHistory.length < 3) {
+                icon.className =
+                    "fas fa-arrow-right trend-icon trend-stable";
+
+                text.textContent = "Estável";
+                return;
+            }
+
             const recent = readingsHistory.slice(-5);
-            const luminosidades = recent.map(r => r.valor);
-            
-            const firstHalf = luminosidades.slice(0, Math.floor(luminosidades.length / 2));
-            const secondHalf = luminosidades.slice(Math.floor(luminosidades.length / 2));
-            
-            const avgFirst = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
-            const avgSecond = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
-            
-            const diff = avgSecond - avgFirst;
-            const threshold = 2; // Limiar para considerar mudança significativa
-            
-            const icon = document.getElementById('trend-icon');
-            const text = document.getElementById('trend-text');
-            
-            icon.className = 'fas trend-icon';
-            
-            if (diff > threshold) {
-                icon.classList.add('fa-arrow-up', 'trend-up');
-                text.textContent = 'Crescendo';
-            } else if (diff < -threshold) {
-                icon.classList.add('fa-arrow-down', 'trend-down');
-                text.textContent = 'Diminuindo';
+            const values = recent.map(reading => reading.valor);
+
+            const middle = Math.floor(values.length / 2);
+
+            const firstHalf = values.slice(0, middle);
+            const secondHalf = values.slice(middle);
+
+            const averageFirst =
+                firstHalf.reduce(
+                    (total, value) => total + value,
+                    0
+                ) / firstHalf.length;
+
+            const averageSecond =
+                secondHalf.reduce(
+                    (total, value) => total + value,
+                    0
+                ) / secondHalf.length;
+
+            const difference = averageSecond - averageFirst;
+            const threshold = 2;
+
+            icon.className = "fas trend-icon";
+
+            if (difference > threshold) {
+                icon.classList.add("fa-arrow-up", "trend-up");
+                text.textContent = "Crescendo";
+            } else if (difference < -threshold) {
+                icon.classList.add("fa-arrow-down", "trend-down");
+                text.textContent = "Diminuindo";
             } else {
-                icon.classList.add('fa-arrow-right', 'trend-stable');
-                text.textContent = 'Estável';
+                icon.classList.add("fa-arrow-right", "trend-stable");
+                text.textContent = "Estável";
             }
         }
 
-        // ============================================
-        // ATUALIZAR ALERTAS
-        // ============================================
+        /* ============================================
+           ALERTAS
+           ============================================ */
+
         function updateAlerts(classificacao) {
-            const alertMuitoIluminado = document.getElementById('alert-muito-iluminado');
-            const alertEscuro = document.getElementById('alert-escuro');
-            
-            // Esconde todos os alertas primeiro
-            alertMuitoIluminado.classList.remove('show');
-            alertEscuro.classList.remove('show');
-            
-            // Mostra alerta apropriado baseado na classificação da API
-            if (classificacao === 'Muita') {
-                alertMuitoIluminado.classList.add('show');
-            } else if (classificacao === 'Pouca') {
-                alertEscuro.classList.add('show');
+            const alertHigh =
+                document.getElementById("alert-muito-iluminado");
+
+            const alertLow =
+                document.getElementById("alert-escuro");
+
+            alertHigh.classList.remove("show");
+            alertLow.classList.remove("show");
+
+            if (classificacao === "Muita") {
+                alertHigh.classList.add("show");
+            } else if (classificacao === "Pouca") {
+                alertLow.classList.add("show");
             }
         }
     </script>
