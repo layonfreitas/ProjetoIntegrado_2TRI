@@ -4,11 +4,10 @@ Sistema distribuído de aquisição, processamento e visualização de dados, si
 
 ## Integrantes do grupo
 
-- [Nome do integrante 1]
-- [Nome do integrante 2]
-- [Nome do integrante 3]
+- Layon Rubens Motta de Freitas 
+- Marcelo Vitor Pereira 
 
-## Arquitetura do sistema
+# Arquitetura do sistema
 
 ```
 [Potenciômetro] --> [STM32F103C8T6] --USB CDC / Serial--> [App C#]
@@ -122,7 +121,7 @@ A página (`API/public/index.html`), intitulada "Sistema Inteligente de Monitora
 
 ## Vídeo de apresentação
 
-[Link do vídeo no YouTube]
+https://youtu.be/AaEtk6dAJRc
 
 ## Tecnologias utilizadas
 
